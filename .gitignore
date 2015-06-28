@@ -1,0 +1,9 @@
+*.pyc
+build
+dist
+linz_deformationmodel.egg-info
+python-linz-deformationmodel*
+debian/python-linz*
+debian/debhelper.log
+debian/substvars
+debian/files
