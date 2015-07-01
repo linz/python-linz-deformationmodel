@@ -794,10 +794,10 @@ class Model( object ):
 
     def ellipsoid( self ):
         if self._ellipsoid is None:
-            from LINZ.geodetic import ellipsoid
+            from LINZ.Geodetic.Ellipsoid import Ellipsoid
             a=float(self._metadata['ellipsoid_a'])
             rf=float(self._metadata['ellipsoid_rf'])
-            self._ellipsoid=ellipsoid.ellipsoid(a,rf)
+            self._ellipsoid=Ellipsoid(a,rf)
         return self._ellipsoid
 
     def applyTo( self, lon, lat=None, hgt=None, date=None, baseDate=None, subtract=False ):

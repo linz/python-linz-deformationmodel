@@ -8,10 +8,8 @@ __version__='1.1'
 
 from Time import Time
 from Model import Model
-from LINZ.DeformationModel.Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
-
-from LINZ.geodetic import ellipsoid
-from LINZ.geodetic import ITRF_transformation
+from Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
+from LINZ.Geodetic import ITRF
 
 class Transformation( object ):
     '''
@@ -66,7 +64,7 @@ class Transformation( object ):
             
         try:
             itrf=itrf.upper()
-            itrf_src=ITRF_transformation.transformation(from_itrf='ITRF96',to_itrf=itrf)
+            itrf_src=ITRF.Transformation(from_itrf='ITRF96',to_itrf=itrf)
             if toNZGD2000:
                 itrf_src = itrf_src.reversed()
             itrf_tfm=itrf_src.transformLonLat

@@ -8,7 +8,7 @@ from Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
 
 import ITRF_NZGD2000
 
-from LINZ.geodetic.ellipsoid import grs80 
+from LINZ.Geodetic.Ellipsoid import GRS80 
 
 '''
 The NZGD2000_conversion_grid.py script is used to generate a grid of corrections
@@ -262,12 +262,12 @@ def main():
                     outstream.write("{0:.5f},{1:.5f},{2:.9f},{3:.9f},{4:.4f}\n".format(
                         lon,lat,rvs*(llh[0]-lon),rvs*(llh[1]-lat),rvs*llh[2]))
                 elif corrtype=="enu":
-                    dedln,dndlt=grs80.metres_per_degree(lon,lat)
+                    dedln,dndlt=GRS80.metres_per_degree(lon,lat)
                     outstream.write("{0:.5f},{1:.5f},{2:.4f},{3:.4f},{4:.4f}\n".format(
                         lon,lat,rvs*dedln*(llh[0]-lon),rvs*dndlt*(llh[1]-lat),rvs*llh[2]))
                 elif corrtype=="xyz":
-                    xyz0=grs80.xyz(lon,lat,hgt)
-                    xyz1=grs80.xyz(llh[0],llh[1],llh[2])
+                    xyz0=GRS80.xyz(lon,lat,hgt)
+                    xyz1=GRS80.xyz(llh[0],llh[1],llh[2])
                     outstream.write("{0:.5f},{1:.5f},{2:.4f},{3:.4f},{4:.4f}\n".format(
                         lon,lat,
                         rvs*(xyz1[0]-xyz0[0]),

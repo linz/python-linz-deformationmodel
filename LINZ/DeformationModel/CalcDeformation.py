@@ -23,7 +23,7 @@ def main():
     import re
     import csv
 
-    from LINZ.geodetic.ellipsoid import grs80
+    from LINZ.Geodetic.Ellipsoid import GRS80
 
     from Time import Time
     from Model import Model
@@ -414,7 +414,7 @@ def main():
                         for i in range(3):
                             defm[i]=-defm[i]
                     if update:
-                        dedln,dndlt=grs80.metres_per_degree(ptlon,ptlat)
+                        dedln,dndlt=GRS80.metres_per_degree(ptlon,ptlat)
                         ptlon += defm[0]/dedln
                         ptlat += defm[1]/dndlt
                         pthgt += defm[2]
@@ -475,7 +475,7 @@ def main():
                         for i in range(3):
                             defm[i] = -defm[i]
                     if update:
-                        dedln,dndlt=grs80.metres_per_degree(lon,lat)
+                        dedln,dndlt=GRS80.metres_per_degree(lon,lat)
                         lon += defm[0]/dedln
                         lat += defm[1]/dndlt
                         data[colnos[0]]="%.8lf"%(lon,)
