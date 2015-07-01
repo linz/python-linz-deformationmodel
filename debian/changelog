@@ -1,3 +1,9 @@
+python-linz-deformationmodel (1.0.1-1) trusty; urgency=medium
+
+  * Fixing up capitalisation
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Thu, 02 Jul 2015 10:24:08 +1200
+
 python-linz-deformationmodel (1.0.0-1) trusty; urgency=medium
 
   * source package automatically created by stdeb 0.6.0+git
