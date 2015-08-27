@@ -12,8 +12,7 @@ import numpy as np
 
 from .Time import Time
 from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
-
-import .ITRF_NZGD2000
+from . import ITRF_NZGD2000
 
 from LINZ.Geodetic.Ellipsoid import GRS80 
 
