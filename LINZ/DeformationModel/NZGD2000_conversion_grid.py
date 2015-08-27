@@ -1,12 +1,19 @@
 #!/usr/bin/python
+
+# Imports to support python 3 compatibility
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import sys
 import argparse
 import numpy as np
 
-from Time import Time
-from Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
+from .Time import Time
+from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
 
-import ITRF_NZGD2000
+import .ITRF_NZGD2000
 
 from LINZ.Geodetic.Ellipsoid import GRS80 
 
@@ -142,7 +149,7 @@ def main():
     try:
         date=Time.Parse(args.date) 
     except:
-        print "Invalid date "+v+" requested, must be formatted YYYY-MM-DD"
+        print("Invalid date "+v+" requested, must be formatted YYYY-MM-DD")
         sys.exit()
     outputfile=args.output_file
     itrf=args.itrf
@@ -175,11 +182,11 @@ def main():
                 usecache=usecache,
                 clearcache=clearcache )
         except ModelDefinitionError:
-            print "Error loading model:"
-            print str(sys.exc_info()[1])
+            print("Error loading model:")
+            print(str(sys.exc_info()[1]))
             break
         except RuntimeError:
-            print str(sys.exc_info()[1])
+            print(str(sys.exc_info()[1]))
             break
 
         # Determine the source for input
@@ -223,22 +230,22 @@ def main():
                         coords.append((lon,lat))
 
         except ValueError as e:
-            print "Invalid grid definition: "+e.message
+            print("Invalid grid definition: "+e.message)
             break
 
         # Create the output file
 
         if not quiet:
             if reverse:
-                print "Calculating NZGD2000 to "+itrf+" corrections at "+str(date)
+                print("Calculating NZGD2000 to "+itrf+" corrections at "+str(date))
             else:
-                print "Calculating "+itrf+" to NZGD2000 corrections at "+str(date)
-            print "Deformation model "+transform.model.name() + " version "+transform.version
+                print("Calculating "+itrf+" to NZGD2000 corrections at "+str(date))
+            print("Deformation model "+transform.model.name() + " version "+transform.version)
 
         try:
             outstream = open(outputfile,"wb")
         except:
-            print "Cannot open output file",outputfile
+            print("Cannot open output file",outputfile)
             break
 
 
@@ -280,17 +287,17 @@ def main():
                 nmissing += 1
             except:
                 raise
-                print str(sys.exc_info()[1])
+                print(str(sys.exc_info()[1]))
                 nerror += 1
 
         outstream.close()
 
         if not quiet:
-            print "{0} corrections calculated".format(ncalc)
+            print("{0} corrections calculated".format(ncalc))
         if nrngerr > 0:
-            print "{0} points were outside the valid range of the model".format(nrngerr)
+            print("{0} points were outside the valid range of the model".format(nrngerr))
         if nmissing > 0:
-            print "{0} deformation values were undefined in the model".format(nmissing)
+            print("{0} deformation values were undefined in the model".format(nmissing))
 
 
 if __name__=="__main__":

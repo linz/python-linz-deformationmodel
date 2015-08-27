@@ -1,4 +1,11 @@
 #!/usr/bin/python
+
+# Imports to support python 3 compatibility
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import sys
 import datetime
 
@@ -6,10 +13,11 @@ __version__='1.1'
 
 # Setup the ITRF transformation
 
-from Time import Time
-from Model import Model
-from Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
 from LINZ.Geodetic import ITRF
+
+from .Time import Time
+from .Model import Model
+from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
 
 class Transformation( object ):
     '''
@@ -150,7 +158,7 @@ def main( reversed=False):
         syntax=syntax.replace('NZGD2000->ITRF','ITRF->NZGD2000')
 
     def help():
-        print syntax
+        print(syntax)
         sys.exit()
 
     modeldir=None
@@ -181,7 +189,7 @@ def main( reversed=False):
               'grid=','itrf=', 'model-dir=','version=',
               'quiet','cache=','reverse','logging','atpoint'])
     except getopt.GetoptError:
-        print str(sys.exc_info()[1])
+        print( str(sys.exc_info()[1]))
         sys.exit()
 
     nargs = 2
@@ -198,19 +206,19 @@ def main( reversed=False):
                 try:
                     date=Time.Parse(v) 
                 except:
-                    print "Invalid date "+v+" requested, must be formatted YYYY-MM-DD"
+                    print("Invalid date "+v+" requested, must be formatted YYYY-MM-DD")
                     sys.exit()
         elif o in ('-c','--columns'):
             columns=v.split(':')
             if len(columns) != 3:
-                print "Invalid columns specified - must be 3 colon separated column names"
+                print("Invalid columns specified - must be 3 colon separated column names")
                 sys.exit()
         elif o in ('-f','--format'):
             v = v.lower()
             if v in ('csv','tab','whitespace','c','t','w'):
                 format=v[:1]
             else:
-                print "Invalid format specified, must be one of csv, tab, or whitespace"
+                print("Invalid format specified, must be one of csv, tab, or whitespace")
                 sys.exit()
         elif o in ('-g','--grid'):
             griddef=v
@@ -235,23 +243,23 @@ def main( reversed=False):
                 usecache = v in ('use','reset')
                 clearcache = v in ('clear','reset')
             else:
-                print "Invalid cache option - must be one of use, clear, reset, ignore"
+                print("Invalid cache option - must be one of use, clear, reset, ignore")
                 sys.exit()
         elif o in ('--logging'):
             logging.basicConfig(level=logging.INFO)
         else:
-            print "Invalid parameter "+o+" specified"
+            print("Invalid parameter "+o+" specified")
 
     if len(args) > nargsmax:
-        print "Too many arguments specified: " + " ".join(args[nargs:])
+        print("Too many arguments specified: " + " ".join(args[nargs:]))
         sys.exit()
     elif len(args) < nargs:
         if atpoint:
-            print "Require longitude, latitude and optional height coordinate"
+            print("Require longitude, latitude and optional height coordinate")
         elif nargs - len(args) == 2:
-            print "Require input and output filename arguments"
+            print("Require input and output filename arguments")
         else:
-            print "Require output filename argument"
+            print("Require output filename argument")
         sys.exit()
 
     if reversed:
@@ -265,7 +273,7 @@ def main( reversed=False):
             if len(args) > 2:
                 pthgt=float(args[2])
         except:
-            print "Invalid longitude/latitude "+args[0]+" "+args[1]
+            print("Invalid longitude/latitude "+args[0]+" "+args[1])
             sys.exit()
     else:
         if nargs == 2:
@@ -291,11 +299,11 @@ def main( reversed=False):
                 usecache=usecache,
                 clearcache=clearcache )
         except ModelDefinitionError:
-            print "Error loading model:"
-            print str(sys.exc_info()[1])
+            print("Error loading model:")
+            print(str(sys.exc_info()[1]))
             break
         except RuntimeError:
-            print str(sys.exc_info()[1])
+            print(str(sys.exc_info()[1]))
             break
 
 
@@ -342,7 +350,7 @@ def main( reversed=False):
                 reader=readf
             except:
                 raise
-                print "Invalid grid definition",griddef
+                print("Invalid grid definition",griddef)
                 break
             ncols=7
             colnos=[4,5,6]
@@ -362,7 +370,7 @@ def main( reversed=False):
             try:
                 instream = open(inputfile,"rb")
             except:
-                print "Cannot open input file "+inputfile
+                print("Cannot open input file "+inputfile)
                 break
             # Whitespace
             if format == 'w':
@@ -387,13 +395,13 @@ def main( reversed=False):
                 else:
                     break
             if len(colnos) < 3:
-                print "Column",c,"missing in",inputfile
+                print("Column",c,"missing in",inputfile)
                 break
             if date_column:
                 if date_column in headers:
                     date_colno = headers.index(date_column)
                 else:
-                    print "Column",date_column,"missing in",inputfile
+                    print("Column",date_column,"missing in",inputfile)
                     break
 
                 date_colno = colno
@@ -405,19 +413,19 @@ def main( reversed=False):
             action = action+"NZGD2000 to "+itrf if reverse else action+itrf+" to NZGD2000" 
             datopt = "the date in column "+date_column if date_column else str(date)
             action = action + ' at '+datopt
-            print action
-            print "Deformation model "+transform.model.name() + " version "+transform.version
-            print "for "+transform.model.datumName()
+            print(action)
+            print("Deformation model "+transform.model.name() + " version "+transform.version)
+            print("for "+transform.model.datumName())
 
         if atpoint:
                 llh = transform(ptlon,ptlat,pthgt, date )
-                print "{0:.8f} {1:.8f} {2:.4f}".format(*llh)
+                print("{0:.8f} {1:.8f} {2:.4f}".format(*llh))
                 break
 
         try:
             outstream = open(outputfile,"wb")
         except:
-            print "Cannot open output file",outputfile
+            print("Cannot open output file",outputfile)
             break
 
         writefunc = None
@@ -460,15 +468,15 @@ def main( reversed=False):
                 nmissing += 1
             except:
                 raise
-                print str(sys.exc_info()[1])
+                print(str(sys.exc_info()[1]))
                 nerror += 1
 
         if not quiet:
-            print ncalc," coordinates values converted"
+            print(ncalc," coordinates values converted")
             if nrngerr > 0:
-                print nrngerr,"points were outside the valid range of the model"
+                print(nrngerr,"points were outside the valid range of the model")
             if nmissing > 0:
-                print nmissing,"deformation values were undefined in the model"
+                print(nmissing,"deformation values were undefined in the model")
 
 def reversed():
     main(True)

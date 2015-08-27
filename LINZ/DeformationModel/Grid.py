@@ -1,12 +1,16 @@
-from __future__ import with_statement
+# Imports to support python 3 compatibility
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
-from CsvFile import CsvFile
 import numpy as np
 import math
 import os.path
 
-from DeformationList import DeformationList
-from Error import ModelDefinitionError, UndefinedValueError, OutOfRangeError
+from .CsvFile import CsvFile
+from .DeformationList import DeformationList
+from .Error import ModelDefinitionError, UndefinedValueError, OutOfRangeError
 
 class Grid( object ):
     '''

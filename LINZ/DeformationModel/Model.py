@@ -1,4 +1,10 @@
 
+# Imports to support python 3 compatibility
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import os.path
 import sys
 import logging
@@ -6,13 +12,13 @@ import datetime
 import time
 import math
 
-from Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
-from CsvFile import CsvFile
-from Time import Time
-from TimeModel import TimeModel
-from Grid import Grid
-from TIN import TIN
-from Cache import Cache
+from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
+from .CsvFile import CsvFile
+from .Time import Time
+from .TimeModel import TimeModel
+from .Grid import Grid
+from .TIN import TIN
+from .Cache import Cache
 
 
 def _buildHash(x,attrs):

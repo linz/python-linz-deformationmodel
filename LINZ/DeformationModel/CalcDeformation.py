@@ -1,4 +1,11 @@
 #!/usr/bin/python
+
+# Imports to support python 3 compatibility
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import sys
 import os
 import datetime
@@ -7,16 +14,16 @@ def main():
     __version__='1.0b'
 
     if sys.version_info.major != 2:
-        print "This program requires python 2"
+        print("This program requires python 2")
         sys.exit()
     if sys.version_info.minor < 6:
-        print "This program requires python 2.6 or more recent"
+        print("This program requires python 2.6 or more recent")
         sys.exit()
 
     try:
         import numpy
     except ImportError:
-        print "This program requires the python numpy module is installed"
+        print("This program requires the python numpy module is installed")
         sys.exit()
 
     import getopt
@@ -25,9 +32,9 @@ def main():
 
     from LINZ.Geodetic.Ellipsoid import GRS80
 
-    from Time import Time
-    from Model import Model
-    from Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
+    from .Time import Time
+    from .Model import Model
+    from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
 
 
     syntax='''
@@ -78,7 +85,7 @@ def main():
     '''
 
     def help():
-        print syntax
+        print(syntax)
         sys.exit()
 
 
@@ -123,7 +130,7 @@ def main():
               'grid=','model-dir=','version=','patch','check',
               'only=','list','quiet','cache=','logging','atpoint'])
     except getopt.GetoptError:
-        print str(sys.exc_info()[1])
+        print(str(sys.exc_info()[1]))
         sys.exit()
 
     nargs = 2
@@ -149,13 +156,13 @@ def main():
                 try:
                     date=Time.Parse(v) 
                 except:
-                    print "Invalid date "+v+" requested, must be formatted YYYY-MM-DD"
+                    print("Invalid date "+v+" requested, must be formatted YYYY-MM-DD")
                     sys.exit()
         elif o in ('-b','--base-date'):
            try:
                 base_date=Time.Parse(v) 
            except:
-                print "Invalid base date "+v+" requested, must be formatted YYYY-MM-DD"
+                print("Invalid base date "+v+" requested, must be formatted YYYY-MM-DD")
                 sys.exit()
         elif o in ('-a','--apply'):
             update=True
@@ -166,20 +173,20 @@ def main():
             usercolumns=True
             columns=v.split(':')
             if len(columns) not in (2,3,4):
-                print "Invalid columns specified - must be 2 or 3 colon separated column names"
+                print("Invalid columns specified - must be 2 or 3 colon separated column names")
                 sys.exit()
         elif o in ('-f','--format'):
             v = v.lower()
             if v in ('csv','tab','whitespace','c','t','w'):
                 format=v[:1]
             else:
-                print "Invalid format specified, must be one of csv, tab, or whitespace"
+                print("Invalid format specified, must be one of csv, tab, or whitespace")
                 sys.exit()
         elif o in ('-e','--elements'):
             cols = v.lower().split(':')
             for c in cols:
                 if c not in calcfields:
-                    print "Invalid calculated value "+c+" requested, must be one of "+' '.join(calcfields)
+                    print("Invalid calculated value "+c+" requested, must be one of "+' '.join(calcfields))
                     sys.exit()
             calculate = [i for i,c in enumerate(calcfields) if c in cols]
         elif o in ('-g','--grid'):
@@ -195,7 +202,7 @@ def main():
         elif o in ('-v','--version'):
             m=re.match(r'^(\d{8})?(?:\-(\d{8}))?$',v)
             if not v or not m:
-                print "Invalid model version "+v+" selected"
+                print("Invalid model version "+v+" selected")
                 sys.exit()
             if m.group(1):
                 version=m.group(1)
@@ -215,24 +222,24 @@ def main():
                 usecache = v in ('use','reset')
                 clearcache = v in ('clear','reset')
             else:
-                print "Invalid cache option - must be one of use, clear, reset, ignore"
+                print("Invalid cache option - must be one of use, clear, reset, ignore")
                 sys.exit()
         elif o in ('--logging'):
             import logging
             logging.basicConfig(level=logging.INFO)
         else:
-            print "Invalid parameter "+o+" specified"
+            print("Invalid parameter "+o+" specified")
 
     if len(args) > maxargs:
-        print "Too many arguments specified: " + " ".join(args[nargs:])
+        print("Too many arguments specified: " + " ".join(args[nargs:]))
         sys.exit()
     elif len(args) < nargs:
         if atpoint:
-            print "Require longitude and latitude coordinate"
+            print("Require longitude and latitude coordinate")
         elif nargs - len(args) == 2:
-            print "Require input and output filename arguments"
+            print("Require input and output filename arguments")
         else:
-            print "Require output filename argument"
+            print("Require output filename argument")
         sys.exit()
 
     if atpoint:
@@ -241,7 +248,7 @@ def main():
             ptlat=float(args[1])
             pthgt=float(args[2]) if len(args)==3 else 0.0
         except:
-            print "Invalid longitude/latitude "+args[0]+" "+args[1]
+            print("Invalid longitude/latitude "+args[0]+" "+args[1])
             sys.exit()
     else:
         if nargs == 2:
@@ -270,11 +277,11 @@ def main():
                 model = Model(modeldir,loadAll=check,
                                     useCache=usecache,clearCache=clearcache,loadSubmodel=submodel )
             except ModelDefinitionError:
-                print "Error loading model:"
-                print str(sys.exc_info()[1])
+                print("Error loading model:")
+                print(str(sys.exc_info()[1]))
                 break
             if check:
-                print "The deformation model is correctly formatted"
+                print("The deformation model is correctly formatted")
                 break
 
             # Set the model version
@@ -291,14 +298,14 @@ def main():
                     date = model.datumEpoch()
                 else:
                     if not quiet:
-                        print "Using a date or date column with a patch option - are you sure?"
+                        print("Using a date or date column with a patch option - are you sure?")
             else:
                 if date is None and date_column is None:
                     date = Time.Now()
                 model.setVersion( version, base_version )
 
             if listonly:
-                print model.description()
+                print(model.description())
                 break
 
             # Determine the source for input
@@ -339,7 +346,7 @@ def main():
                                 yield [str(lon),str(lat)]
                     reader=readf
                 except:
-                    print "Invalid grid definition",griddef
+                    print("Invalid grid definition",griddef)
                     break
                 colnos=[0,1]
                 headers=columns[0:2]
@@ -348,7 +355,7 @@ def main():
                 try:
                     instream = sys.stdin if inputfile=='-' else open(inputfile,"rb")
                 except:
-                    print "Cannot open input file "+inputfile
+                    print("Cannot open input file "+inputfile)
                     break
                 # Whitespace
                 if format == 'w':
@@ -371,7 +378,7 @@ def main():
                 if len(columns) > 3:
                     date_column=date_column or columns[3]
                     if date_column != columns[3]:
-                        print "Inconsistent names specified for date column"
+                        print("Inconsistent names specified for date column")
                         break
                     columns=columns[:3]
                     if columns[2] == '':
@@ -382,7 +389,7 @@ def main():
                     elif c=='hgt' and not usercolumns:
                         break
                     else:
-                        print "Column",c,"missing in",inputfile
+                        print("Column",c,"missing in",inputfile)
                         columnsvalid=False
                 if not columnsvalid:
                     break
@@ -390,7 +397,7 @@ def main():
                     if date_column in headers:
                         date_colno = headers.index(date_column)
                     else:
-                        print "Column",date_column,"missing in",inputfile
+                        print("Column",date_column,"missing in",inputfile)
                         break
 
             # Create the output file
@@ -404,9 +411,9 @@ def main():
                     datopt = "between "+str(base_date)+" and "+datopt
                 else:
                     datopt = "at "+datopt
-                print "Deformation model "+model.name()
-                print "for datum "+model.datumName()
-                print action + " " + value + " " + vsnopt + " " + datopt
+                print("Deformation model "+model.name())
+                print("for datum "+model.datumName())
+                print(action + " " + value + " " + vsnopt + " " + datopt)
 
             if atpoint:
                     defm = model.calcDeformation(ptlon,ptlat,date,base_date)
@@ -418,18 +425,18 @@ def main():
                         ptlon += defm[0]/dedln
                         ptlat += defm[1]/dndlt
                         pthgt += defm[2]
-                        print "{0:.8f} {1:.8f} {2:.4f}".format(ptlon,ptlat,pthgt)
+                        print("{0:.8f} {1:.8f} {2:.4f}".format(ptlon,ptlat,pthgt))
                     elif quiet:
-                        print "{0:.4f} {1:.4f} {2:.4f}".format(defm[0],defm[1],defm[2])
+                        print("{0:.4f} {1:.4f} {2:.4f}".format(defm[0],defm[1],defm[2]))
                     else:
-                        print "Deformation at {0:.6f} {1:.6f}: {2:.4f} {3:.4f} {4:.4f}".format(
-                            ptlon,ptlat,defm[0],defm[1],defm[2])
+                        print("Deformation at {0:.6f} {1:.6f}: {2:.4f} {3:.4f} {4:.4f}".format(
+                            ptlon,ptlat,defm[0],defm[1],defm[2]))
                     break
 
             try:
                 outstream = sys.stdout if outputfile=='-' else open(outputfile,"wb")
             except:
-                print "Cannot open output file",outputfile
+                print("Cannot open output file",outputfile)
                 break
 
             if not update:
@@ -461,7 +468,7 @@ def main():
                 nrec+=1
                 if len(data) < ncols:
                     if not quiet:
-                        print "Skipping record",nrec,"as too few columns"
+                        print("Skipping record",nrec,"as too few columns")
                         continue
                 else:
                     data=data[:ncols]
@@ -495,18 +502,18 @@ def main():
                     nmissing += 1
                 except:
                     raise
-                    print str(sys.exc_info()[1])
+                    print(str(sys.exc_info()[1]))
                     nerror += 1
 
             if not quiet:
-                print ncalc,"deformation values calculated"
+                print(ncalc,"deformation values calculated")
                 if nrngerr > 0:
-                    print nrngerr,"points were outside the valid range of the model"
+                    print(nrngerr,"points were outside the valid range of the model")
                 if nmissing > 0:
-                    print nmissing,"deformation values were undefined in the model"
+                    print(nmissing,"deformation values were undefined in the model")
 
     except:
-        print str(sys.exc_info()[1])
+        print(str(sys.exc_info()[1]))
 
 
     if model:
