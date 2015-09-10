@@ -11,8 +11,8 @@ import sys
 import csv
 import new
 import re
-import Time
 
+from . import Time
 from .Error import InvalidValueError, ModelDefinitionError
 
 class CsvFile( object ):
