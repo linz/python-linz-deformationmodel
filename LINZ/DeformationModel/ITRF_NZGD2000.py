@@ -45,7 +45,8 @@ class Transformation( object ):
                  modeldir=None, 
                  version=None,
                  usecache=True,
-                 clearcache=False):
+                 clearcache=False,
+                 model=None):
 
         '''
         Set up an ITRF to NZGD2000 transformation or reverse transformation
@@ -58,6 +59,7 @@ class Transformation( object ):
             version      The version of the deformation model to use
             usecache     If true then use the binary cached model
             clearcache   If true then delete the cached model
+            model        If defined then overrides othermodle parameters
 
         '''
 
@@ -65,10 +67,11 @@ class Transformation( object ):
             from os.path import dirname, abspath, join
             modeldir = join(dirname(dirname(abspath(__file__))),'model')
 
-        model = Model(modeldir,useCache=usecache,clearCache=clearcache )
-        if version is None:
-            version = model.currentVersion()
-        model.setVersion( version )
+        if model is None:
+            model = Model(modeldir,useCache=usecache,clearCache=clearcache )
+            if version is None:
+                version = model.currentVersion()
+            model.setVersion( version )
             
         try:
             itrf=itrf.upper()

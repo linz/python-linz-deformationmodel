@@ -12,7 +12,7 @@ import datetime
 import time
 import math
 
-from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
+from .Error import Error, ModelDefinitionError, OutOfRangeError, UndefinedValueError
 from .CsvFile import CsvFile
 from .Time import Time
 from .TimeModel import TimeModel
@@ -973,3 +973,71 @@ class Model( object ):
 
     def __str__( self ):
         return self.description(allversions=True)
+
+
+def deformationModelArguments():
+    '''
+    Creates an argument parser object use to load a deformation model with loadDeformationModel().
+    The parser can be included as a parent for application program argument parsers. ie 
+
+       myparser=ArgumentParser(description='Use deformation model, parents=[deformationModelArgments()]
+
+    Adds the following arguments:
+
+        -m modeldir       Directory in which deformation model is located
+        --model-directory
+        -r release        Release of deformation model to use, default is current model
+        --model-release
+        --model-components  Subcomponents of module to use
+        --clear-model-cache  Clears the cache used by the deformation model 
+        --ignore-model-cache Don't use the deformation model cache
+        --list-deformation-model  Print a description of the deformation model to stdout and exit
+    '''
+    import argparse
+
+    parser=argparse.ArgumentParser(add_help=False)
+    parser.add_argument('-m','--model-directory',
+                        help='The directory in which  the deformation model is defined')
+    parser.add_argument('-r','--model-release',
+                        help='The release (version) of the deformation model to load')
+    parser.add_argument('--model-components',
+                        help='The components of the deformation model to load (eg "ndm+patch_c1_20100904")')
+    parser.add_argument('--clear-model-cache',action='store_true',
+                        help='Clear the model cache (force a reload)')
+    parser.add_argument('--ignore-model-cache',action='store_true',
+                        help='Do not use the deformation model cache')
+    parser.add_argument('--list-deformation-model',action='store_true',
+                        help='List out the deformation model and exit')
+    return parser
+
+def loadDeformationModel( args ):
+    '''
+    Loads a deformation model based on the arguments.
+
+        args      The result of parsing the command line using the arguments from 
+                  addDeformationModelArguments
+    '''
+
+    try:
+        if args.model_directory is None:
+            raise Error("Deformation model directory must be defined with -m parameter")
+        model=Model( 
+            args.model_directory, 
+            version=args.model_release, 
+            loadSubmodel=args.model_components, 
+            useCache=not args.ignore_model_cache,
+            clearCache=args.clear_model_cache
+            )
+    except Error as e:
+        if not args.list_deformation_model:
+            raise 
+        if args.model_directory is not None:
+            print("\nFailed to load deformation model from "+args.model_directory)
+        print(e.message)
+        sys.exit()
+
+    if args.list_deformation_model:
+        print(model.description(allversions=True))
+        sys.exit()
+
+    return model
