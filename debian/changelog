@@ -1,3 +1,11 @@
+python-linz-deformationmodel (1.1.0-1) trusty; urgency=medium
+
+  * Fixing precision of Lat/Lon output to ensure mm precision
+  * Using pytables close_open_files function rather than unsupported method
+  * Adding functions for defining deformation model parameters in command line arguments
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 23 Nov 2015 10:14:39 +1300
+
 python-linz-deformationmodel (1.0.3-1) trusty; urgency=medium
 
   * Fixing import error
