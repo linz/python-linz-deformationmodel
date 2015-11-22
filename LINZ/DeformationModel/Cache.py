@@ -51,7 +51,13 @@ class Cache( object ):
         if not Cache.registered:
             import atexit
             import tables
-            atexit.register(tables.file.close_open_files)
+            if 'close_open_files' in dir(tables.file):
+                close_open_files=tables.file.close_open_files
+            else:
+                def close_open_files():
+                    for h in list(tables.file._open_files.handlers):
+                        h.close()
+            atexit.register(close_open_files)
             Cache.registered=True
 
     def get( self, filename, metadata ):
