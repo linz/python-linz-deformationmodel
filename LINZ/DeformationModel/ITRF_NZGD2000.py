@@ -59,7 +59,7 @@ class Transformation( object ):
             version      The version of the deformation model to use
             usecache     If true then use the binary cached model
             clearcache   If true then delete the cached model
-            model        If defined then overrides othermodle parameters
+            model        If defined then overrides other model parameters
 
         '''
 
