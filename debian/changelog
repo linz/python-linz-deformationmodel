@@ -1,3 +1,10 @@
+python-linz-deformationmodel (1.1.1-1) trusty; urgency=medium
+
+  * Docstring fix
+  * Fixing Cache to support older version of pytables
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 23 Nov 2015 12:43:40 +1300
+
 python-linz-deformationmodel (1.1.0-1) trusty; urgency=medium
 
   * Fixing precision of Lat/Lon output to ensure mm precision
