@@ -17,7 +17,6 @@ from .CsvFile import CsvFile
 from .Time import Time
 from .TimeModel import TimeModel
 from .Grid import Grid
-from .TIN import TIN
 from .Cache import Cache
 
 
@@ -103,7 +102,7 @@ class TimeFunction( object ):
 
 class SpatialModel( object ):
     '''
-    Manages the spatial model, TIN or grid.
+    Manages the spatial model
     
     A spatial model may be invoked by multiple subcomponents in the 
     model definition component.csv file.  The hashKey function is used 
@@ -117,7 +116,7 @@ class SpatialModel( object ):
     efficient.
     '''
 
-    hashattr = ['spatial_model','file1','file2']
+    hashattr = ['spatial_model','file1']
     checkattr = ['min_lon','min_lat','max_lon','max_lat','spatial_complete','npoints1','npoints2',
                  'displacement_type']
 
@@ -139,7 +138,7 @@ class SpatialModel( object ):
             models[hash] = SpatialModel( model, submodel, compdef, load )
         else:
             if not SpatialModel.compatibleDefinition(models[hash],compdef):
-                raise ModelDefinitionError('Inconsistent usage of grid/TIN file '+compdef.file1+' in '+submodel+' component.csv')
+                raise ModelDefinitionError('Inconsistent usage of grid file '+compdef.file1+' in '+submodel+' component.csv')
         return models[hash]
 
     def __init__( self, model, submodel, compdef, load=False ):
@@ -168,12 +167,6 @@ class SpatialModel( object ):
             self._model = Grid(model,self.file1,self.min_lon,self.max_lon,self.min_lat,self.max_lat,self.npoints1,self.npoints2,self.columns,name=name)
             dlon,dlat=self._model.resolution()
             self._description = "Grid model ({0} x {1}) using {2}".format(dlon,dlat,self._name)
-        elif compdef.spatial_model == 'lltin':
-            if not self.file2:
-                raise ModelDefinitionError('file2 is not defined for TIN model')
-            self.file2 = os.path.join(submodel,compdef.file2)
-            self._model = TIN(model,self.file1,self.file2,self.min_lon,self.max_lon,self.min_lat,self.max_lat,self.npoints1,self.npoints2,self.columns,name=name)
-            self._description = "TIN model using "+self._name
         else:
             raise ModelDefinitionError('Invalid spatial model type '+compdef.spatial_model)
 
@@ -526,8 +519,8 @@ class Model( object ):
         '''
         Loads the deformation model located at the specified base directory (the
         directory holding the model.csv file).  If loadAll=True then the spatial submodels
-        of all models are preloaded (ie TINs and grids).  Otherwise they are loaded only
-        when they are required for calculations.
+        of all models are preloaded.  Otherwise they are loaded only when they are required 
+        for calculations.
 
         The version and baseVersion for deformation calculations can be specified, otherwise
         the latest version is used by default.
