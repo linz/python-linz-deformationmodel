@@ -1,3 +1,9 @@
+python-linz-deformationmodel (1.2.1-1) trusty; urgency=medium
+
+  * Fixing up help and base-version options for calcdeformation
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Wed, 04 May 2016 06:56:06 +1200
+
 python-linz-deformationmodel (1.2.0-1) trusty; urgency=medium
 
   * Removing TIN definition from deformation model
