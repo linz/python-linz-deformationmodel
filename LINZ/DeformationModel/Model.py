@@ -494,7 +494,7 @@ class Model( object ):
         'factor1 ?float',
         'decay ?float',
         'file1 \w+\.csv',
-        'file2 ?\w+\.csv',
+        'file2? ?\w+\.csv',
         'description unicode',
         ])
 

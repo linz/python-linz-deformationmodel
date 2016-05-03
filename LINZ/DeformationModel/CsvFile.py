@@ -26,7 +26,7 @@ class CsvFile( object ):
         Defines a field specification - data type and validation
         '''
         
-        def __init__( self, name, typestr ):
+        def __init__( self, name, typestr, optionalfield=False ):
             optional = False
             if typestr.startswith('?'):
                 optional = True
@@ -65,10 +65,14 @@ class CsvFile( object ):
                     raise InvalidValueError('Cannot convert '+name+' value "'+x+'" to '+typestr)
                 return value
             self._name = name
+            self._optional=optionalfield
             self.parse = f
 
         def name( self ):
             return self._name
+
+        def optional( self ):
+            return self._optional
 
         def parse( self, value ):
             raise InvalidValueError("Undefined field type")
@@ -92,6 +96,10 @@ class CsvFile( object ):
                         fieldname, name = name.split('=')
                     fieldname = fieldname or name
                     array=''
+                    fieldoptional=False
+                    if fieldname.endswith('?'):
+                        fieldname=fieldname[:-1]
+                        fieldoptional=True
                     if fieldname.endswith('[]'):
                         fieldname=fieldname[:-2]
                         if fieldname not in arrays:
@@ -102,7 +110,7 @@ class CsvFile( object ):
                             arrays[fieldname]+=1
                         array='['+str(arrays[fieldname])+']'
 
-                    fieldlist.append(CsvFile.Field(name,typestr))
+                    fieldlist.append(CsvFile.Field(name,typestr,fieldoptional))
                     valuestr='fieldlist['+str(nfield)+'].parse(record['+str(nfield)+'])'
                     nfield += 1
 
@@ -123,6 +131,9 @@ class CsvFile( object ):
             exec cdef in dict(fieldlist=fieldlist,container=self)
             self._fieldlist = fieldlist
             self._nfield = nfield
+
+        def fieldlist( self ):
+            return self._fieldlist
 
         def fieldnames( self ):
             return [f.name() for f in self._fieldlist]
@@ -158,20 +169,37 @@ class CsvFile( object ):
         self._csv = csv.reader(self._f)
 
         headers = self._csv.next()
-        if headers != self._fields.fieldnames():
-            message=''
-            reqhead=self._fields.fieldnames()
-            for (fn,rfn) in zip(headers,reqhead):
-                if fn != rfn:
-                    message="Field "+fn+" does not match expected "+rfn
-                    break
-            if not message:
-                if len(reqhead) > len(headers):
-                    message="Missing fields: "+", ".join(reqhead[len(headers):])
-                if len(headers) > len(reqhead):
-                    message="Extra fields: "+", ".join(headers[len(reqhead):])
+        inserts=[]
+        offset=0
+        message=''
+        for i,field in enumerate(self._fields.fieldlist()):
+            if i+offset >= len(headers):
+                missing=", ".join([f.name() for f in self.fields[i:] if not f.optional()])
+                if missing:
+                    message="Missing fields: "+missing
+                else:
+                    while i < len(self._fields.fieldlist()):
+                        inserts.append(i)
+                break
+            if headers[i+offset]==field.name():
+                continue
+            if field.optional():
+                inserts.append(i)
+                offset -= 1
+                continue
+            message="Field "+fn+" does not match expected "+rfn
+            break
+
+        if not message:
+            extra=", ".join(headers[len(self._fields.fieldlist())+offset:])
+            if extra:
+                message="Extra fields: "+extra
+
+        if message:
             raise ModelDefinitionError("File " + filename + " does not have the correct columns for a "+filetype+" file\n"+message)
 
+        self._inserts=inserts
+        self._ndata=len(self._fields.fieldlist())+offset
 
     def __iter__(self):
         return self
@@ -191,6 +219,10 @@ class CsvFile( object ):
             if len(data) > 1 or (len(data)==1 and data[0] != ''):
                 break
         try: 
+            while len(data) < self._ndata:
+                data.append('')
+            for i in self._inserts:
+                data.insert(i,'')
             return self._fields.parse( data )
         except:
             error = str(sys.exc_info()[1])
