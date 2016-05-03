@@ -43,32 +43,35 @@ def main():
 
     Syntax:
         python CalcDeformation.py [options] input_file output_file
-        python CalcDeformation.py [options] -a longitude latitude
+        python CalcDeformation.py [options] -x longitude latitude
 
     Options are:
       -d date           The date at which to calculate the deformation 
         --date=..       (default current date), or ":col_name"
       -b date           The reference date at which to calculate deformation.  The 
-        --base_date=..   default is to calculate relative to the reference coordinates
-      -u                Update the coordinates (default action is to calculate the 
-        --update        displacement components) 
+        --base-date=..   default is to calculate relative to the reference coordinates
+      -a                Apply deformation to update coordinates 
+        --apply         
+      -s                Subtract deformation to update coordinates
+        --subtract
       -c lon:lat:h      Column names for the longitude, latitude, and height columns           
         --columns=      in input_file.  Default is lon, lat, hgt (optional)
       -f format         Format of the input and output files - format can be one of 
         --format=       csv (excel compatible csv), tab (tab delimited), 
                         w (whitespace delimited).
-      -x de:dn:du       Displacement components to calculate, any of de, dn, du,
+      -e de:dn:du       Displacement components to calculate, any of de, dn, du,
+        --elements=
       --calculate=      eh, ev, separated by colon characters (default is de,dn,du)
       -g grid           Use a grid for input rather than an input file. The grid is
         --grid=         entered as "min_lon:min_lat:max_lon:max_lat:nlon:nlat"
-      -a                Evaluate at longitude, latitude specified as arguments, rather
+      -x                Evaluate at longitude, latitude specified as arguments, rather
         --atpoint       using input/output files
       -m dir            Model base directory (default ../model)
         --model-dir=
       -v version        Version of model to calculate (default latest version)
         --version=      
       -r version        Calculate change relative to previous (base) version
-        --baseversion=
+        --base-version=
       -p                Calculate reverse patch corrections 
         --patch 
       -k                Check that the model is correctly formatted - do not do any 
@@ -125,9 +128,9 @@ def main():
     optlist=None
     args=None
     try:
-        optlist, args = getopt.getopt( sys.argv[1:], 'hd:b:uc:f:e:g:m:v:po:kqlxas', 
+        optlist, args = getopt.getopt( sys.argv[1:], 'hd:b:uc:f:e:g:m:v:r:po:kqlxas', 
              ['help', 'date=', 'base-date=', 'apply','subtract','columns=','format=','elements=',
-              'grid=','model-dir=','version=','patch','check',
+              'grid=','model-dir=','version=','baseversion','patch','check',
               'only=','list','quiet','cache=','logging','atpoint'])
     except getopt.GetoptError:
         print(str(sys.exc_info()[1]))
@@ -211,6 +214,11 @@ def main():
             else:
                 version=m.group(2)
                 subtract=True
+        elif o in ('-r','--base-version'):
+            m=re.match(r'^\d{8}$',v)
+            if not m:
+                print("Invalid model base version "+v+" selected")
+            base_version=v
         elif o in ('-p','--patch'):
             reverse_patch = True
         elif o in ('-q','--quiet'):
