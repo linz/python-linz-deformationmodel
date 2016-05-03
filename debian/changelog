@@ -1,3 +1,10 @@
+python-linz-deformationmodel (1.2.0-1) trusty; urgency=medium
+
+  * Removing TIN definition from deformation model
+  * Removing TIN support - no longer considered useful
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Wed, 04 May 2016 06:35:59 +1200
+
 python-linz-deformationmodel (1.1.1-1) trusty; urgency=medium
 
   * Docstring fix
