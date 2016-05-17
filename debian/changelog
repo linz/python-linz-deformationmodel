@@ -1,5 +1,6 @@
-python-linz-deformationmodel (1.2.2-1) trusty; urgency=medium
+python-linz-deformationmodel (1.2.3-1) trusty; urgency=medium
 
+  * Error specifying optional field
   * Fixing error message
 
  -- Chris Crook <ccrook@linz.govt.nz>  Tue, 17 May 2016 18:00:34 +1200
