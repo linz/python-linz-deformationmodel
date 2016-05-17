@@ -1,3 +1,9 @@
+python-linz-deformationmodel (1.2.2-1) trusty; urgency=medium
+
+  * Fixing error message
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Tue, 17 May 2016 18:00:34 +1200
+
 python-linz-deformationmodel (1.2.1-1) trusty; urgency=medium
 
   * Fixing up help and base-version options for calcdeformation
