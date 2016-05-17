@@ -187,7 +187,7 @@ class CsvFile( object ):
                 inserts.append(i)
                 offset -= 1
                 continue
-            message="Field "+fn+" does not match expected "+rfn
+            message="Field "+headers[i+offset]+" does not match expected "+field.name()
             break
 
         if not message:
