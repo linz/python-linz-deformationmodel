@@ -65,7 +65,7 @@ class CsvFile( object ):
                     raise InvalidValueError('Cannot convert '+name+' value "'+x+'" to '+typestr)
                 return value
             self._name = name
-            self._optional=optionalfield
+            self._optional=optionalfield or optional
             self.parse = f
 
         def name( self ):
