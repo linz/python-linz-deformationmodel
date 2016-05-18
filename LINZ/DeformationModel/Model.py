@@ -118,7 +118,7 @@ class SpatialModel( object ):
 
     hashattr = ['spatial_model','file1']
     checkattr = ['min_lon','min_lat','max_lon','max_lat','spatial_complete','npoints1','npoints2',
-                 'displacement_type']
+                 'displacement_type','description']
 
     @staticmethod
     def hashKey( submodel, compdef ):
@@ -152,6 +152,7 @@ class SpatialModel( object ):
         self.npoints2=compdef.npoints2
         self.displacement_type=compdef.displacement_type
         self.error_type=compdef.error_type
+        self.description=compdef.description
         self.columns=[]
         if self.displacement_type in ['horizontal','3d']: self.columns.extend(['de','dn'])
         if self.displacement_type in ['vertical','3d']: self.columns.append('du')
@@ -388,7 +389,7 @@ class Component( object ):
         self.component = compdef.component
         self.priority = compdef.priority
         self.spatialModel = spatialModel
-        self.name = submodel+'/'+spatialModel.name()
+        self.name = spatialModel.name()
         self.timeFunction = timeFunc
         self.factor = 1.0
         self.timeFactor = 0.0
@@ -722,6 +723,9 @@ class Model( object ):
         self._date = None
         self._baseDate = None
         self._timeRangeError=None
+
+    def metadata( self, item ):
+        return self._metadata.get(item)
 
     def getFileName( self, *parts ):
         return os.path.join(self._basedir,*parts)
