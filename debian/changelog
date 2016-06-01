@@ -1,3 +1,10 @@
+python-linz-deformationmodel (1.2.4-1) trusty; urgency=medium
+
+  * Fixing up metadata
+  * Bug fix on optional field
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Wed, 01 Jun 2016 14:01:37 +1200
+
 python-linz-deformationmodel (1.2.3-1) trusty; urgency=medium
 
   * Error specifying optional field
