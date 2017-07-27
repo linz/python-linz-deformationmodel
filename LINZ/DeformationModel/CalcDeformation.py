@@ -78,6 +78,8 @@ def main():
         --check         calculations
       -o submodel       Only calculate for specified submodel (ndm or patch directory name)
         --only=
+      -n ndp            Number of decimal places to use for model values
+        --ndpi=
       -l                Just list details of the model (input and output file 
         --list          are ignored)
       -q                Suppress optional output
@@ -113,8 +115,10 @@ def main():
     atpoint=False
     ptlon=None
     ptlat=None
+    ndp=4
     calcfields='de dn du eh ev'.split()
     calculate=[0,1,2]
+    islogging=False
 
     ell_a=6378137.0
     ell_rf=298.257222101
@@ -128,9 +132,9 @@ def main():
     optlist=None
     args=None
     try:
-        optlist, args = getopt.getopt( sys.argv[1:], 'hd:b:uc:f:e:g:m:v:r:po:kqlxas', 
+        optlist, args = getopt.getopt( sys.argv[1:], 'hd:b:uc:f:e:g:m:v:r:pn:o:kqlxas', 
              ['help', 'date=', 'base-date=', 'apply','subtract','columns=','format=','elements=',
-              'grid=','model-dir=','version=','baseversion','patch','check',
+              'grid=','model-dir=','version=','baseversion','patch','check','ndp=',
               'only=','list','quiet','cache=','logging','atpoint'])
     except getopt.GetoptError:
         print(str(sys.exc_info()[1]))
@@ -225,6 +229,8 @@ def main():
             quiet = True
         elif o in ('-o', '--only'):
             submodel=v
+        elif o in ('-n', '--ndp'):
+            ndp=int(v)
         elif o in ('--cache'):
             if v in ('use','clear','ignore','reset'):
                 usecache = v in ('use','reset')
@@ -235,6 +241,7 @@ def main():
         elif o in ('--logging'):
             import logging
             logging.basicConfig(level=logging.INFO)
+            islogging=True
         else:
             print("Invalid parameter "+o+" specified")
 
@@ -435,10 +442,10 @@ def main():
                         pthgt += defm[2]
                         print("{0:.9f} {1:.9f} {2:.4f}".format(ptlon,ptlat,pthgt))
                     elif quiet:
-                        print("{0:.4f} {1:.4f} {2:.4f}".format(defm[0],defm[1],defm[2]))
+                        print("{0:.{3}f} {1:.{3}f} {2:.{3}f}".format(defm[0],defm[1],defm[2],ndp))
                     else:
-                        print("Deformation at {0:.6f} {1:.6f}: {2:.4f} {3:.4f} {4:.4f}".format(
-                            ptlon,ptlat,defm[0],defm[1],defm[2]))
+                        print("Deformation at {0:.6f} {1:.6f}: {2:.{5}f} {3:.{5}f} {4:.{5}f}".format(
+                            ptlon,ptlat,defm[0],defm[1],defm[2],ndp))
                     break
 
             try:
@@ -493,15 +500,15 @@ def main():
                         dedln,dndlt=GRS80.metres_per_degree(lon,lat)
                         lon += defm[0]/dedln
                         lat += defm[1]/dndlt
-                        data[colnos[0]]="%.9lf"%(lon,)
-                        data[colnos[1]]="%.9lf"%(lat,)
+                        data[colnos[0]]="{0:.9f}".format(lon)
+                        data[colnos[1]]="{0:.9f}".format(lat)
                         if len(colnos) > 2:
                             hgt = float(data[colnos[2]])
                             hgt += defm[2]
-                            data[colnos[2]] = "%.3lf"%(hgt,)
+                            data[colnos[2]] = "{0:.4f}".format(hgt)
                     else:
                         for c in calculate:
-                            data.append("%.4lf"%defm[c])
+                            data.append("{0:.{1}f}".format(defm[c],ndp))
                     writefunc(data)
                     ncalc += 1
                 except OutOfRangeError:
@@ -521,7 +528,11 @@ def main():
                     print(nmissing,"deformation values were undefined in the model")
 
     except:
-        print(str(sys.exc_info()[1]))
+        errmsg=str(sys.exc_info()[1])
+        print(errmsg)
+        if islogging:
+            logging.info(errmsg)
+            raise
 
 
     if model:

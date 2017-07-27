@@ -11,6 +11,7 @@ import logging
 import datetime
 import time
 import math
+from collections import namedtuple
 
 from .Error import Error, ModelDefinitionError, OutOfRangeError, UndefinedValueError
 from .CsvFile import CsvFile
@@ -98,7 +99,6 @@ class TimeFunction( object ):
 
     def __str__( self ):
         return str(self._model)
-
 
 class SpatialModel( object ):
     '''
@@ -277,6 +277,8 @@ class SpatialModelSet( object ):
         self.min_lat=model.min_lat
         self.max_lon=model.max_lon
         self.max_lat=model.max_lat
+        self.displacement_type=compdef.displacement_type
+        self.error_type=compdef.error_type
 
         # Cached calculations
         self._xy=(None,None)
@@ -288,8 +290,8 @@ class SpatialModelSet( object ):
 
     def addComponent( self, model, compdef ):
         if SpatialModelSet.compatibilityHash(compdef) != self._checkhash:
-            raise ModelDefinitionError('Subcomponent '+str(self.component)+' of '
-                +submodel+' uses inconsistent versions, time models or displacement/error submodels')
+            raise ModelDefinitionError('Subcomponent '+str(self._component)+' of '
+                +model.name()+' uses inconsistent versions, time models or displacement/error submodels')
 
         self.min_lon = min(self.min_lon,model.min_lon)
         self.min_lat = min(self.min_lat,model.min_lat)
@@ -346,20 +348,22 @@ class SpatialModelSet( object ):
             raise ModelDefinitionError( self._modelError )
         try:
             if (x,y) != self._xy:
-                try:
-                    self._xy=(x,y)
-                    self._xyRangeError = None
-                    self._defUndefinedError = None
-                    for m in self._sortedModels:
+                self._xy=(x,y)
+                self._xyRangeError = None
+                self._defUndefinedError = None
+                for m in self._sortedModels:
+                    try:
                         self._xydisp, self._xyInRange = m.calcDeformation(x,y)
-                        if self._xyInRange:
-                            break
-                except OutOfRangeError:
-                    self._xyRangeError = sys.exc_info()[1]
-                    raise
-                except UndefinedValueError:
-                    self._defUndefinedError = sys.exc_info()[1]
-                    raise
+                    except OutOfRangeError:
+                        logging.info("Spatial component %s out of range",self.name())
+                        self._xyRangeError = sys.exc_info()[1]
+                        raise
+                    except UndefinedValueError:
+                        logging.info("Spatial component %s undefined",self.name())
+                        self._defUndefinedError = sys.exc_info()[1]
+                        raise
+                    if self._xyInRange:
+                        break
                 logging.info("Spatial component %s calculated as %s",self.name(),self._xydisp)
             elif self._xyRangeError:
                 raise OutOfRangeError( self._xyRangeError )
@@ -916,6 +920,33 @@ class Model( object ):
         for c in sorted(self._components,key=compkey):
             if allversions or c.appliesForVersion(self.version()):
                 yield c
+
+    def reversePatchComponents( self, version=None ):
+        '''
+        Returns a list of components which contribute to a reverse patch
+        for a specified datum version (default is for the current version) 
+        '''
+
+        if version is None:
+            version=self._version
+        if version not in self._versions:
+            raise RuntimeError('Invalid version {0} requested'.format(version))
+
+        ScaledComponent=namedtuple('ScaledComponent','factor component')
+        revcomps=[]
+        rpepoch=self._datumepoch
+        for c in self.components(allversions=True):
+            if c.versionAdded == version:
+                factor=-1.0
+            elif c.versionRevoked == version:
+                factor=1.0
+            else:
+                continue
+            tf,ef=c.timeFunction.calcFactor( self._datumepoch )
+            factor *= tf
+            if factor != 0:
+                revcomps.append(ScaledComponent(factor,c))
+        return revcomps
 
     def description( self, allversions=False, submodels=True ):
         '''

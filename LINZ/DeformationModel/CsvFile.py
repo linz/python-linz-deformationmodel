@@ -143,6 +143,11 @@ class CsvFile( object ):
                 record.append('')
             return self._class(record)
 
+        def __len__( self ):
+            return len(self._fieldlist)
+
+        def __getitem__( self, i ):
+            return self._fieldlist[i]
     def __init__( self, filetype, filename, fields ):
         '''
         Initiallize the CsvFile reader.  
@@ -172,14 +177,15 @@ class CsvFile( object ):
         inserts=[]
         offset=0
         message=''
-        for i,field in enumerate(self._fields.fieldlist()):
+        for i,field in enumerate(self._fields):
             if i+offset >= len(headers):
-                missing=", ".join([f.name() for f in self.fields[i:] if not f.optional()])
+                missing=", ".join([f.name() for f in self._fields[i:] if not f.optional()])
                 if missing:
                     message="Missing fields: "+missing
                 else:
-                    while i < len(self._fields.fieldlist()):
+                    while i < len(self._fields):
                         inserts.append(i)
+                        i += 1
                 break
             if headers[i+offset]==field.name():
                 continue
