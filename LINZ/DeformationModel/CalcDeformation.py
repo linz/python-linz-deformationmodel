@@ -303,10 +303,14 @@ def main():
 
             if version is None:
                 version = model.currentVersion()
+            if version not in model.versions():
+                print("{0} is not a valid version of the deformation model".format(version))
+                break
 
             if reverse_patch:
                 if base_version is None:
-                    base_version = model.versions()[0]
+                    versions=model.versions()
+                    base_version = versions[versions.index(version)-1]
                 model.setVersion( base_version, version )
 
                 if date is None and date_column==None:
