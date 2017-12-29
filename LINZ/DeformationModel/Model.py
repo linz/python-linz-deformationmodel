@@ -848,6 +848,30 @@ class Model( object ):
             results.append([ln+factor*deun[0]/dedln,lt+factor*deun[1]/dndlt,ht+factor*deun[2]])
         return results[0] if single else np.array(results)
 
+    def calcLLHFunc( self, lon, lat, hgt=0.0, subtract=False ):
+        '''
+        Returns a function which can take date as input and calculate the corresponding 
+        LatLonHgt with the deformation model applied.
+        '''
+        dedln,dndlt=self.ellipsoid().metres_per_degree(lon,lat)
+        factor=-1 if subtract else 1
+        def calcFunc( date ):
+            deun=self.calcDeformation(lon,lat,date)[:3]
+            return [lon+factor*deun[0]/dedln,lat+factor*deun[1]/dndlt,hgt+factor*deun[2]]
+        return calcFunc
+    
+    def calcXYZFunc( self, XYZ, subtract=False ):
+        '''
+        Returns a function which can take date as input and calculate the corresponding 
+        XYZ with the deformation model applied.
+        '''
+        lon,lat,hgt=self.ellipsoid().geodetic(XYZ)
+        llhfunc=self.calcLLHFunc(lon,lat,hgt,subtract)
+        def calcFunc( date ):
+            lon,lat,hgt=llhfunc(date)
+            return self.ellipsoid().xyz(lon,lat,hgt)
+        return calcFunc
+
     def name( self ):
         '''
         Return the name of this model
