@@ -276,7 +276,7 @@ def main():
 
     if not modeldir:
         from os.path import dirname, abspath, join, isdir, exists
-        modeldir = join(dirname(dirname(abspath(__file__))),'model')
+        modeldir = join(dirname(dirname(abspath(sys.argv[0]))),'model')
         modelcsv=join(modeldir,'model.csv')
         if not isdir(modeldir) or not exists(modelcsv):
             modeldir='model'
