@@ -28,12 +28,16 @@ class Cache( object ):
         try:
             import tables
             import warnings
+            if 'open_file' not in dir(tables):
+                raise NotImplementedError
             warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
             self._h5file=tables.open_file(filename,mode="a",title="Deformation model cache")
             self._locked = False
             Cache.register_exit_func()
         except ImportError:
             return 
+        except NotImplementedError:
+            return
         except IOError:
             pass
         # Failing that, try read only
