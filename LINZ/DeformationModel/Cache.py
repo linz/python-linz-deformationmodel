@@ -29,7 +29,7 @@ class Cache( object ):
             import tables
             import warnings
             warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
-            self._h5file=tables.openFile(filename,mode="a",title="Deformation model cache")
+            self._h5file=tables.open_file(filename,mode="a",title="Deformation model cache")
             self._locked = False
             Cache.register_exit_func()
         except ImportError:
@@ -39,7 +39,7 @@ class Cache( object ):
         # Failing that, try read only
         if not self._h5file:
             try:
-                self._h5file=tables.openFile(filename,mode="r",title="Deformation model cache")
+                self._h5file=tables.open_file(filename,mode="r",title="Deformation model cache")
             except IOError:
                 pass
             
@@ -65,8 +65,8 @@ class Cache( object ):
             return None
         grid=None
         try:
-            grid=self._h5file.getNode('/'+filename)
-            if grid.getAttr('cache_metadata') != metadata:
+            grid=self._h5file.get_node('/'+filename)
+            if grid.get_attr('cache_metadata') != metadata:
                 grid=None
         except:
             grid=None
@@ -77,22 +77,15 @@ class Cache( object ):
             return None
         hf=self._h5file
         if '/'+filename in hf:
-            hf.removeNode('/',filename)
+            hf.remove_node('/',filename)
         parts=filename.split('/')
         name = parts[-1]
         path = '/'+'/'.join(parts[:-1])
-        grid=hf.createArray(path,name,value,createparents=True)
-        grid.setAttr('cache_metadata',metadata)
+        grid=hf.create_array(path,name,value,createparents=True)
+        grid.set_attr('cache_metadata',metadata)
         hf.flush()
 
     def close( self ):
         if self._h5file:
             self._h5file.close()
             self._h5file = None
-
-
-
-
-    
-
-
