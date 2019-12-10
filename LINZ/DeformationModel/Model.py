@@ -498,8 +498,8 @@ class Model( object ):
         'time1 ?datetime',
         'factor1 ?float',
         'decay ?float',
-        'file1 \w+\.csv',
-        'file2 ?\w+\.csv',
+        r'file1 \w+\.csv',
+        r'file2 ?\w+\.csv',
         'description unicode',
         ])
 
