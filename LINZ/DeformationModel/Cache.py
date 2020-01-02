@@ -1,12 +1,8 @@
-
 # Imports to support python 3 compatibility
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
-class Cache( object ):
-    '''
+
+class Cache(object):
+    """
     A binary cache for array data to improve load time for deformation models.
 
     Uses HDF5 storage implemented by PyTables.  If this is not available, then it will
@@ -17,25 +13,28 @@ class Cache( object ):
     if the cached data is still valid.  Sensibly this will be a combination of file
     attributes (size, last accessed date) and significant metadata (number of rows,
     column names, etc) to ensure that it is still valid.
-    '''
+    """
 
-    registered=False
+    registered = False
 
-    def __init__( self, filename ):
+    def __init__(self, filename):
         self._locked = True
         self._h5file = None
         # Try opening with write access ...
         try:
             import tables
             import warnings
-            if 'open_file' not in dir(tables):
+
+            if "open_file" not in dir(tables):
                 raise NotImplementedError
-            warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
-            self._h5file=tables.open_file(filename,mode="a",title="Deformation model cache")
+            warnings.filterwarnings("ignore", category=tables.NaturalNameWarning)
+            self._h5file = tables.open_file(
+                filename, mode="a", title="Deformation model cache"
+            )
             self._locked = False
             Cache.register_exit_func()
         except ImportError:
-            return 
+            return
         except NotImplementedError:
             return
         except IOError:
@@ -43,11 +42,13 @@ class Cache( object ):
         # Failing that, try read only
         if not self._h5file:
             try:
-                self._h5file=tables.open_file(filename,mode="r",title="Deformation model cache")
+                self._h5file = tables.open_file(
+                    filename, mode="r", title="Deformation model cache"
+                )
             except IOError:
                 pass
-            
-    def __del__( self ):
+
+    def __del__(self):
         self.close()
 
     @staticmethod
@@ -55,41 +56,44 @@ class Cache( object ):
         if not Cache.registered:
             import atexit
             import tables
-            if 'close_open_files' in dir(tables.file):
-                close_open_files=tables.file.close_open_files
+
+            if "close_open_files" in dir(tables.file):
+                close_open_files = tables.file.close_open_files
             else:
+
                 def close_open_files():
                     for h in list(tables.file._open_files.handlers):
                         h.close()
-            atexit.register(close_open_files)
-            Cache.registered=True
 
-    def get( self, filename, metadata ):
+            atexit.register(close_open_files)
+            Cache.registered = True
+
+    def get(self, filename, metadata):
         if not self._h5file:
             return None
-        grid=None
+        grid = None
         try:
-            grid=self._h5file.get_node('/'+filename)
-            if grid.get_attr('cache_metadata') != metadata:
-                grid=None
+            grid = self._h5file.get_node("/" + filename)
+            if grid.get_attr("cache_metadata") != metadata:
+                grid = None
         except:
-            grid=None
+            grid = None
         return grid
 
-    def set( self, filename, metadata, value ):
+    def set(self, filename, metadata, value):
         if self._locked:
             return None
-        hf=self._h5file
-        if '/'+filename in hf:
-            hf.remove_node('/',filename)
-        parts=filename.split('/')
+        hf = self._h5file
+        if "/" + filename in hf:
+            hf.remove_node("/", filename)
+        parts = filename.split("/")
         name = parts[-1]
-        path = '/'+'/'.join(parts[:-1])
-        grid=hf.create_array(path,name,value,createparents=True)
-        grid.set_attr('cache_metadata',metadata)
+        path = "/" + "/".join(parts[:-1])
+        grid = hf.create_array(path, name, value, createparents=True)
+        grid.set_attr("cache_metadata", metadata)
         hf.flush()
 
-    def close( self ):
+    def close(self):
         if self._h5file:
             self._h5file.close()
             self._h5file = None

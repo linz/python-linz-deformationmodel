@@ -1,15 +1,12 @@
 #!/usr/bin/python
 
 # Imports to support python 3 compatibility
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
 
 import sys
 import datetime
 
-__version__='1.1'
+__version__ = "1.1"
 
 # Setup the ITRF transformation
 
@@ -19,8 +16,9 @@ from .Time import Time
 from .Model import Model
 from .Error import ModelDefinitionError, OutOfRangeError, UndefinedValueError
 
-class Transformation( object ):
-    '''
+
+class Transformation(object):
+    """
     Class for transforming between ITRF's and NZGD2000. The usage is
 
         tfm=ITRF_NZGD2000.Transformation('ITRF2008',toNZGD2000=True)
@@ -30,25 +28,27 @@ class Transformation( object ):
         model=tfm.model
         version=tfm.version
 
-    '''
+    """
 
-    itrf=None
-    toNZGD2000=None
-    model=None
-    modeldir=None
-    version=None
-    transform=None
+    itrf = None
+    toNZGD2000 = None
+    model = None
+    modeldir = None
+    version = None
+    transform = None
 
-    def __init__( self, 
-                 itrf='ITRF2008', 
-                 toNZGD2000=True, 
-                 modeldir=None, 
-                 version=None,
-                 usecache=True,
-                 clearcache=False,
-                 model=None):
+    def __init__(
+        self,
+        itrf="ITRF2008",
+        toNZGD2000=True,
+        modeldir=None,
+        version=None,
+        usecache=True,
+        clearcache=False,
+        model=None,
+    ):
 
-        '''
+        """
         Set up an ITRF to NZGD2000 transformation or reverse transformation
 
         Arguments:
@@ -61,53 +61,57 @@ class Transformation( object ):
             clearcache   If true then delete the cached model
             model        If defined then overrides other model parameters
 
-        '''
+        """
 
         if not modeldir:
             from os.path import dirname, abspath, join
-            modeldir = join(dirname(dirname(abspath(__file__))),'model')
+
+            modeldir = join(dirname(dirname(abspath(__file__))), "model")
 
         if model is None:
-            model = Model(modeldir,useCache=usecache,clearCache=clearcache )
+            model = Model(modeldir, useCache=usecache, clearCache=clearcache)
             if version is None:
                 version = model.currentVersion()
-            model.setVersion( version )
-            
+            model.setVersion(version)
+
         try:
-            itrf=itrf.upper()
-            itrf_src=ITRF.Transformation(from_itrf='ITRF96',to_itrf=itrf)
+            itrf = itrf.upper()
+            itrf_src = ITRF.Transformation(from_itrf="ITRF96", to_itrf=itrf)
             if toNZGD2000:
                 itrf_src = itrf_src.reversed()
-            itrf_tfm=itrf_src.transformLonLat
+            itrf_tfm = itrf_src.transformLonLat
         except:
-            raise RuntimeError( "Invalid ITRF "+itrf )
+            raise RuntimeError("Invalid ITRF " + itrf)
 
         if toNZGD2000:
-            def transform( lon, lat, hgt, date ):
+
+            def transform(lon, lat, hgt, date):
                 if type(date) != Time:
-                    date=Time(date)
-                llh=itrf_tfm( lon, lat, hgt, date=date.asYear() )
-                llh=model.applyTo( llh, date=date, subtract=True )
+                    date = Time(date)
+                llh = itrf_tfm(lon, lat, hgt, date=date.asYear())
+                llh = model.applyTo(llh, date=date, subtract=True)
                 return llh
+
         else:
-            def transform( lon, lat, hgt, date ):
+
+            def transform(lon, lat, hgt, date):
                 if type(date) != Time:
-                    date=Time(date)
-                llh=model.applyTo( lon, lat, hgt, date=date.asYear() )
-                llh=itrf_tfm( llh, date=date.asYear() )
+                    date = Time(date)
+                llh = model.applyTo(lon, lat, hgt, date=date.asYear())
+                llh = itrf_tfm(llh, date=date.asYear())
                 return llh
 
-        self.itrf=itrf
-        self.toNZGD2000=toNZGD2000
-        self.model=model
-        self.modeldir=modeldir
-        self.version=version
-        self.transform=transform
+        self.itrf = itrf
+        self.toNZGD2000 = toNZGD2000
+        self.model = model
+        self.modeldir = modeldir
+        self.version = version
+        self.transform = transform
 
-    def __call__( self, lon, lat, hgt, date ):
-        return self.transform( lon, lat, hgt, date )
+    def __call__(self, lon, lat, hgt, date):
+        return self.transform(lon, lat, hgt, date)
 
-    def __del__( self ):
+    def __del__(self):
         self.close()
 
     def close(self):
@@ -115,13 +119,12 @@ class Transformation( object ):
             self.model.close()
 
 
-
-def main( reversed=False):
+def main(reversed=False):
     #!/usr/bin/python
     import getopt
     import csv
 
-    syntax='''
+    syntax = """
     ITRF_NZGD2000: program to calculate deformation at a specific time and 
        place using the LINZ deformation model.
 
@@ -154,104 +157,125 @@ def main( reversed=False):
         --quiet
       --cache=..        Cache options, ignore, clear, reset, use (default is use)
       --logging         Enable trace logging 
-    '''
+    """
 
     if reversed:
-        syntax=syntax.replace('ITRF_NZGD2000','NZGD2000_ITRF')
-        syntax=syntax.replace('NZGD2000->ITRF','ITRF->NZGD2000')
+        syntax = syntax.replace("ITRF_NZGD2000", "NZGD2000_ITRF")
+        syntax = syntax.replace("NZGD2000->ITRF", "ITRF->NZGD2000")
 
     def help():
         print(syntax)
         sys.exit()
 
-    modeldir=None
-    version=None
-    reverse=False
-    columns="lon lat hgt".split()
-    date_column=None
-    format="c"
-    date=None
-    griddef=None
-    inputfile=None
-    outputfile=None
-    quiet=False
-    atpoint=False
-    ptlon=None
-    ptlat=None
-    pthgt=None
-    itrf='ITRF2008'
+    modeldir = None
+    version = None
+    reverse = False
+    columns = "lon lat hgt".split()
+    date_column = None
+    format = "c"
+    date = None
+    griddef = None
+    inputfile = None
+    outputfile = None
+    quiet = False
+    atpoint = False
+    ptlon = None
+    ptlat = None
+    pthgt = None
+    itrf = "ITRF2008"
 
     if len(sys.argv) < 2:
         help()
 
-    optlist=None
-    args=None
+    optlist = None
+    args = None
     try:
-        optlist, args = getopt.getopt( sys.argv[1:], 'hd:c:f:g:i:m:v:rqlx', 
-             ['help', 'date=', 'columns=','format=',
-              'grid=','itrf=', 'model-dir=','version=',
-              'quiet','cache=','reverse','logging','atpoint'])
+        optlist, args = getopt.getopt(
+            sys.argv[1:],
+            "hd:c:f:g:i:m:v:rqlx",
+            [
+                "help",
+                "date=",
+                "columns=",
+                "format=",
+                "grid=",
+                "itrf=",
+                "model-dir=",
+                "version=",
+                "quiet",
+                "cache=",
+                "reverse",
+                "logging",
+                "atpoint",
+            ],
+        )
     except getopt.GetoptError:
-        print( str(sys.exc_info()[1]))
+        print(str(sys.exc_info()[1]))
         sys.exit()
 
     nargs = 2
-    nargsmax=2
-    usecache=True
-    clearcache=False
-    for o,v in optlist:
-        if o in ('-h','--help'):
+    nargsmax = 2
+    usecache = True
+    clearcache = False
+    for o, v in optlist:
+        if o in ("-h", "--help"):
             help()
-        elif o in ('-d','--date'):
-            if v.startswith(':'):
-                date_column=v[1:]
+        elif o in ("-d", "--date"):
+            if v.startswith(":"):
+                date_column = v[1:]
             else:
                 try:
-                    date=Time.Parse(v) 
+                    date = Time.Parse(v)
                 except:
-                    print("Invalid date "+v+" requested, must be formatted YYYY-MM-DD")
+                    print(
+                        "Invalid date " + v + " requested, must be formatted YYYY-MM-DD"
+                    )
                     sys.exit()
-        elif o in ('-c','--columns'):
-            columns=v.split(':')
+        elif o in ("-c", "--columns"):
+            columns = v.split(":")
             if len(columns) != 3:
-                print("Invalid columns specified - must be 3 colon separated column names")
+                print(
+                    "Invalid columns specified - must be 3 colon separated column names"
+                )
                 sys.exit()
-        elif o in ('-f','--format'):
+        elif o in ("-f", "--format"):
             v = v.lower()
-            if v in ('csv','tab','whitespace','c','t','w'):
-                format=v[:1]
+            if v in ("csv", "tab", "whitespace", "c", "t", "w"):
+                format = v[:1]
             else:
-                print("Invalid format specified, must be one of csv, tab, or whitespace")
+                print(
+                    "Invalid format specified, must be one of csv, tab, or whitespace"
+                )
                 sys.exit()
-        elif o in ('-g','--grid'):
-            griddef=v
-            nargs=1
-            nargsmax=1
-        elif o in ('-x','--atpoint'):
-            atpoint=True
-            nargs=2
-            nargsmax=3
-        elif o in ('-i','--itrf'):
-            itrf=v
-        elif o in ('-m','--model-dir'):
+        elif o in ("-g", "--grid"):
+            griddef = v
+            nargs = 1
+            nargsmax = 1
+        elif o in ("-x", "--atpoint"):
+            atpoint = True
+            nargs = 2
+            nargsmax = 3
+        elif o in ("-i", "--itrf"):
+            itrf = v
+        elif o in ("-m", "--model-dir"):
             modeldir = v
-        elif o in ('-v','--version'):
+        elif o in ("-v", "--version"):
             version = v
-        elif o in ('-r','--reverse'):
-            reverse=True
-        elif o in ('-q','--quiet'):
+        elif o in ("-r", "--reverse"):
+            reverse = True
+        elif o in ("-q", "--quiet"):
             quiet = True
-        elif o in ('--cache'):
-            if v in ('use','clear','ignore','reset'):
-                usecache = v in ('use','reset')
-                clearcache = v in ('clear','reset')
+        elif o in ("--cache"):
+            if v in ("use", "clear", "ignore", "reset"):
+                usecache = v in ("use", "reset")
+                clearcache = v in ("clear", "reset")
             else:
                 print("Invalid cache option - must be one of use, clear, reset, ignore")
                 sys.exit()
-        elif o in ('--logging'):
+        elif o in ("--logging"):
             logging.basicConfig(level=logging.INFO)
         else:
-            print("Invalid parameter "+o+" specified")
+            print("Invalid parameter " + o + " specified")
 
     if len(args) > nargsmax:
         print("Too many arguments specified: " + " ".join(args[nargs:]))
@@ -266,41 +290,43 @@ def main( reversed=False):
         sys.exit()
 
     if reversed:
-        reverse=not reverse
+        reverse = not reverse
 
     if atpoint:
         try:
-            ptlon=float(args[0])
-            ptlat=float(args[1])
-            pthgt=0.0
+            ptlon = float(args[0])
+            ptlat = float(args[1])
+            pthgt = 0.0
             if len(args) > 2:
-                pthgt=float(args[2])
+                pthgt = float(args[2])
         except:
-            print("Invalid longitude/latitude "+args[0]+" "+args[1])
+            print("Invalid longitude/latitude " + args[0] + " " + args[1])
             sys.exit()
     else:
         if nargs == 2:
-            inputfile=args[0]
+            inputfile = args[0]
         if nargs > 0:
-            outputfile=args[-1]
+            outputfile = args[-1]
 
     if not modeldir:
         from os.path import dirname, abspath, join
-        modeldir = join(dirname(dirname(abspath(__file__))),'model')
+
+        modeldir = join(dirname(dirname(abspath(__file__))), "model")
 
     # Use a loop to make exiting easy...
 
     for loop in [1]:
         # Setup the transformation
-        transform=None
+        transform = None
         try:
-            transform=ITRF_NZGD2000.Transformation(
+            transform = ITRF_NZGD2000.Transformation(
                 itrf,
                 toNZGD2000=not reverse,
                 modeldir=modeldir,
                 version=version,
                 usecache=usecache,
-                clearcache=clearcache )
+                clearcache=clearcache,
+            )
         except ModelDefinitionError:
             print("Error loading model:")
             print(str(sys.exc_info()[1]))
@@ -309,7 +335,6 @@ def main( reversed=False):
             print(str(sys.exc_info()[1]))
             break
 
-
         if date is None and date_column is None:
             date = Time.Now()
 
@@ -317,94 +342,112 @@ def main( reversed=False):
 
         reader = None
         headers = None
-        colnos=None
+        colnos = None
         date_colno = None
 
         ncols = 2
-        dialect = csv.excel_tab if format =='t' else csv.excel;
+        dialect = csv.excel_tab if format == "t" else csv.excel
         if atpoint:
             pass
 
         elif griddef:
             # Grid format
             try:
-                parts=griddef.split(':')
+                parts = griddef.split(":")
                 if len(parts) != 6:
-                    raise ValueError('')
-                min_lon=float(parts[0])
-                min_lat=float(parts[1])
-                max_lon=float(parts[2])
-                max_lat=float(parts[3])
-                nlon=int(parts[4])
-                nlat=int(parts[5])
-                if max_lon<=min_lon or max_lat<=min_lat or nlon<2 or nlat < 2:
-                    raise ValueError('')
-                dlon = (max_lon-min_lon)/(nlon-1)
-                dlat = (max_lat-min_lat)/(nlat-1)
-                datestr=date.strftime()
+                    raise ValueError("")
+                min_lon = float(parts[0])
+                min_lat = float(parts[1])
+                max_lon = float(parts[2])
+                max_lat = float(parts[3])
+                nlon = int(parts[4])
+                nlat = int(parts[5])
+                if max_lon <= min_lon or max_lat <= min_lat or nlon < 2 or nlat < 2:
+                    raise ValueError("")
+                dlon = (max_lon - min_lon) / (nlon - 1)
+                dlat = (max_lat - min_lat) / (nlat - 1)
+                datestr = date.strftime()
+
                 def readf():
-                    lat = min_lat-dlat
+                    lat = min_lat - dlat
                     for ilat in range(nlat):
                         lat += dlat
-                        lon = min_lon-dlon
+                        lon = min_lon - dlon
                         for ilon in range(nlon):
                             lon += dlon
-                            yield [str(lon),str(lat),'0.0',datestr,str(lon),str(lat),'0.0']
-                reader=readf
+                            yield [
+                                str(lon),
+                                str(lat),
+                                "0.0",
+                                datestr,
+                                str(lon),
+                                str(lat),
+                                "0.0",
+                            ]
+
+                reader = readf
             except:
                 raise
-                print("Invalid grid definition",griddef)
+                print("Invalid grid definition", griddef)
                 break
-            ncols=7
-            colnos=[4,5,6]
-            header_itrf=('lon_'+itrf.lower(),'lat_'+itrf.lower(),'hgt_'+itrf.lower())
-            header_nzgd2000=('lon_nzgd2000','lat_nzgd2000','hgt_nzgd2000')
-            headers=[]
+            ncols = 7
+            colnos = [4, 5, 6]
+            header_itrf = (
+                "lon_" + itrf.lower(),
+                "lat_" + itrf.lower(),
+                "hgt_" + itrf.lower(),
+            )
+            header_nzgd2000 = ("lon_nzgd2000", "lat_nzgd2000", "hgt_nzgd2000")
+            headers = []
             if reverse:
                 headers.extend(header_nzgd2000)
-                headers.append('date')
+                headers.append("date")
                 headers.extend(header_itrf)
             else:
                 headers.extend(header_itrf)
-                headers.append('date')
+                headers.append("date")
                 headers.extend(header_nzgd2000)
-            
+
         else:
             try:
-                instream = open(inputfile,"rb")
+                instream = open(inputfile, "rb")
             except:
-                print("Cannot open input file "+inputfile)
+                print("Cannot open input file " + inputfile)
                 break
             # Whitespace
-            if format == 'w':
-                headers=instream.readline().strip().split()
+            if format == "w":
+                headers = instream.readline().strip().split()
+
                 def readf():
                     for line in instream:
                         yield line.strip().split()
+
                 reader = readf
             # CSV format
             else:
-                csvrdr = csv.reader(instream,dialect=dialect)
-                headers=csvrdr.next()
+                csvrdr = csv.reader(instream, dialect=dialect)
+                headers = next(csvrdr)
+
                 def readf():
                     for r in csvrdr:
                         yield r
+
                 reader = readf
             ncols = len(headers)
-            colnos=[]
+            colnos = []
             for c in columns:
                 if c in headers:
                     colnos.append(headers.index(c))
                 else:
                     break
             if len(colnos) < 3:
-                print("Column",c,"missing in",inputfile)
+                print("Column", c, "missing in", inputfile)
                 break
             if date_column:
                 if date_column in headers:
                     date_colno = headers.index(date_column)
                 else:
-                    print("Column",date_column,"missing in",inputfile)
+                    print("Column", date_column, "missing in", inputfile)
                     break
 
                 date_colno = colno
@@ -413,56 +456,67 @@ def main( reversed=False):
 
         if not quiet:
             action = "Converting "
-            action = action+"NZGD2000 to "+itrf if reverse else action+itrf+" to NZGD2000" 
-            datopt = "the date in column "+date_column if date_column else str(date)
-            action = action + ' at '+datopt
+            action = (
+                action + "NZGD2000 to " + itrf
+                if reverse
+                else action + itrf + " to NZGD2000"
+            )
+            datopt = "the date in column " + date_column if date_column else str(date)
+            action = action + " at " + datopt
             print(action)
-            print("Deformation model "+transform.model.name() + " version "+transform.version)
-            print("for "+transform.model.datumName())
+            print(
+                "Deformation model "
+                + transform.model.name()
+                + " version "
+                + transform.version
+            )
+            print("for " + transform.model.datumName())
 
         if atpoint:
-                llh = transform(ptlon,ptlat,pthgt, date )
-                print("{0:.9f} {1:.9f} {2:.4f}".format(*llh))
-                break
+            llh = transform(ptlon, ptlat, pthgt, date)
+            print("{0:.9f} {1:.9f} {2:.4f}".format(*llh))
+            break
 
         try:
-            outstream = open(outputfile,"wb")
+            outstream = open(outputfile, "wb")
         except:
-            print("Cannot open output file",outputfile)
+            print("Cannot open output file", outputfile)
             break
 
         writefunc = None
-        if format=='w':
+        if format == "w":
+
             def writef(cols):
-                outstream.write(' '.join(cols))
+                outstream.write(" ".join(cols))
                 outstream.write("\n")
+
             writefunc = writef
         else:
-            csvwrt = csv.writer(outstream,dialect=dialect)
-            writefunc=csvwrt.writerow
+            csvwrt = csv.writer(outstream, dialect=dialect)
+            writefunc = csvwrt.writerow
 
         writefunc(headers)
 
-        ncalc=0
-        nrngerr=0
-        nmissing=0
-        ncolnos=len(colnos)
+        ncalc = 0
+        nrngerr = 0
+        nmissing = 0
+        ncolnos = len(colnos)
         for data in reader():
             if len(data) < ncols:
                 continue
             else:
-                data=data[:ncols]
+                data = data[:ncols]
             try:
                 lon = float(data[colnos[0]])
                 lat = float(data[colnos[1]])
                 hgt = float(data[colnos[2]]) if ncolnos > 2 else 0.0
                 if date_colno is not None:
                     date = data[date_colno]
-                llh = transform(lon,lat,hgt, date)
-                data[colnos[0]]="{0:.9f}".format(llh[0])
-                data[colnos[1]]="{0:.9f}".format(llh[1])
+                llh = transform(lon, lat, hgt, date)
+                data[colnos[0]] = "{0:.9f}".format(llh[0])
+                data[colnos[1]] = "{0:.9f}".format(llh[1])
                 if ncolnos > 2:
-                    data[colnos[2]]="{0:.4f}".format(llh[2])
+                    data[colnos[2]] = "{0:.4f}".format(llh[2])
                 writefunc(data)
                 ncalc += 1
             except OutOfRangeError:
@@ -475,14 +529,16 @@ def main( reversed=False):
                 nerror += 1
 
         if not quiet:
-            print(ncalc," coordinates values converted")
+            print(ncalc, " coordinates values converted")
             if nrngerr > 0:
-                print(nrngerr,"points were outside the valid range of the model")
+                print(nrngerr, "points were outside the valid range of the model")
             if nmissing > 0:
-                print(nmissing,"deformation values were undefined in the model")
+                print(nmissing, "deformation values were undefined in the model")
+
 
 def reversed():
     main(True)
+
 
 if __name__ == "__main__":
     main()
