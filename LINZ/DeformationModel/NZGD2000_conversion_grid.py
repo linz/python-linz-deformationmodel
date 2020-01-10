@@ -292,7 +292,7 @@ def main():
             )
 
         try:
-            outstream = open(outputfile, "wb")
+            outstream = open(outputfile, "w")
         except:
             print("Cannot open output file", outputfile)
             break

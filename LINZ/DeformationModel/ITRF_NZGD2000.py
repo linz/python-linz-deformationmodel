@@ -410,7 +410,7 @@ def main(reversed=False):
 
         else:
             try:
-                instream = open(inputfile, "rb")
+                instream = open(inputfile, "r")
             except:
                 print("Cannot open input file " + inputfile)
                 break
@@ -478,7 +478,7 @@ def main(reversed=False):
             break
 
         try:
-            outstream = open(outputfile, "wb")
+            outstream = open(outputfile, "w")
         except:
             print("Cannot open output file", outputfile)
             break

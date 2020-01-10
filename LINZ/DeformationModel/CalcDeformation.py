@@ -417,7 +417,7 @@ def main():
 
             else:
                 try:
-                    instream = sys.stdin if inputfile == "-" else open(inputfile, "rb")
+                    instream = sys.stdin if inputfile == "-" else open(inputfile, "r")
                 except:
                     print("Cannot open input file " + inputfile)
                     break
@@ -515,7 +515,7 @@ def main():
                 break
 
             try:
-                outstream = sys.stdout if outputfile == "-" else open(outputfile, "wb")
+                outstream = sys.stdout if outputfile == "-" else open(outputfile, "w")
             except:
                 print("Cannot open output file", outputfile)
                 break
