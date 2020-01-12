@@ -270,7 +270,7 @@ def main():
                         coords.append((lon, lat))
 
         except ValueError as e:
-            print("Invalid grid definition: " + e.message)
+            print("Invalid grid definition: " + str(e))
             break
 
         # Create the output file

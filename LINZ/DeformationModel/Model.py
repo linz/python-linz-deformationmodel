@@ -1303,7 +1303,7 @@ def loadDeformationModel(args):
             raise
         if args.model_directory is not None:
             print("\nFailed to load deformation model from " + args.model_directory)
-        print(e.message)
+        print(str(e))
         sys.exit()
 
     if args.list_deformation_model:
