@@ -58,12 +58,7 @@ class TimeFunction(object):
         self.factor1 = compdef.factor1
         self.decay = compdef.decay
         self._model = TimeModel(
-            compdef.time_function,
-            compdef.factor0,
-            compdef.time0,
-            compdef.factor1,
-            compdef.time1,
-            compdef.decay,
+            compdef.time_function, compdef.factor0, compdef.time0, compdef.factor1, compdef.time1, compdef.decay
         )
 
     def calcFactor(self, date, baseDate=None):
@@ -78,17 +73,13 @@ class TimeFunction(object):
                 if d is None:
                     continue
                 factor = 0.0
-                if (self.min_date and d < self.min_date) or (
-                    self.max_date and d > self.max_date
-                ):
+                if (self.min_date and d < self.min_date) or (self.max_date and d > self.max_date):
                     if not self.time_complete:
                         ok = False
                         break
                 else:
                     factor = self._model.calcFactor(d)
-                    logging.info(
-                        "Time factor %s calculated at %s for %s", factor, d, self._model
-                    )
+                    logging.info("Time factor %s calculated at %s for %s", factor, d, self._model)
                 self.calc_value = factor - self.calc_value
 
             if not ok:
@@ -158,11 +149,7 @@ class SpatialModel(object):
         else:
             if not SpatialModel.compatibleDefinition(models[hash], compdef):
                 raise ModelDefinitionError(
-                    "Inconsistent usage of grid file "
-                    + compdef.file1
-                    + " in "
-                    + submodel
-                    + " component.csv"
+                    "Inconsistent usage of grid file " + compdef.file1 + " in " + submodel + " component.csv"
                 )
         return models[hash]
 
@@ -207,13 +194,9 @@ class SpatialModel(object):
                 name=name,
             )
             dlon, dlat = self._model.resolution()
-            self._description = "Grid model ({0} x {1}) using {2}".format(
-                dlon, dlat, self._name
-            )
+            self._description = "Grid model ({0} x {1}) using {2}".format(dlon, dlat, self._name)
         else:
-            raise ModelDefinitionError(
-                "Invalid spatial model type " + compdef.spatial_model
-            )
+            raise ModelDefinitionError("Invalid spatial model type " + compdef.spatial_model)
 
         # Cached calculations
         self._xy = (None, None)
@@ -284,9 +267,7 @@ class SpatialModel(object):
                 except UndefinedValueError:
                     self._defUndefinedError = sys.exc_info()[1]
                     raise
-                logging.info(
-                    "Spatial component %s calculated as %s", self._name, self._xydisp
-                )
+                logging.info("Spatial component %s calculated as %s", self._name, self._xydisp)
             elif self._xyRangeError:
                 raise OutOfRangeError(self._xyRangeError)
             elif self._defUndefinedError:
@@ -312,11 +293,7 @@ class SpatialModelSet(object):
 
     @staticmethod
     def compatibilityHash(compdef):
-        return (
-            _buildHash(compdef, SpatialModelSet.checkattr)
-            + ":"
-            + _buildHash(compdef, TimeFunction.hashattr)
-        )
+        return _buildHash(compdef, SpatialModelSet.checkattr) + ":" + _buildHash(compdef, TimeFunction.hashattr)
 
     def __init__(self, submodel, model, compdef):
         self._component = submodel
@@ -358,12 +335,7 @@ class SpatialModelSet(object):
         self._models.append(model)
         self._priorities.append(compdef.priority)
         self._sortedModels = [
-            self._models[i]
-            for i in sorted(
-                list(range(len(self._models))),
-                key=lambda j: self._priorities[j],
-                reverse=True,
-            )
+            self._models[i] for i in sorted(list(range(len(self._models))), key=lambda j: self._priorities[j], reverse=True)
         ]
         self._baseModel = self._sortedModels[-1]
 
@@ -428,17 +400,13 @@ class SpatialModelSet(object):
                         raise
                     if self._xyInRange:
                         break
-                logging.info(
-                    "Spatial component %s calculated as %s", self.name(), self._xydisp
-                )
+                logging.info("Spatial component %s calculated as %s", self.name(), self._xydisp)
             elif self._xyRangeError:
                 raise OutOfRangeError(self._xyRangeError)
             elif self._defUndefinedError:
                 raise UndefinedValueError(self._defUndefinedError)
             else:
-                logging.info(
-                    "Using cached %s spatial component %s", self.name(), self._xydisp
-                )
+                logging.info("Using cached %s spatial component %s", self.name(), self._xydisp)
 
             return self._xydisp, self._xyInRange
 
@@ -472,9 +440,7 @@ class Component(object):
         """
         Test if the component applies to a specific version.
         """
-        return self.versionAdded <= version and (
-            self.versionRevoked == "0" or self.versionRevoked > version
-        )
+        return self.versionAdded <= version and (self.versionRevoked == "0" or self.versionRevoked > version)
 
     def setFactor(self, factor):
         self.factor = factor
@@ -487,13 +453,9 @@ class Component(object):
         The time calculation is cached as the most common usage will be for
         many calculations at the same date.
         """
-        logging.info(
-            "Setting submodel %s date %s (base date %s)", self.name, date, baseDate
-        )
+        logging.info("Setting submodel %s date %s (base date %s)", self.name, date, baseDate)
 
-        self.timeFactor, self.timeErrorFactor = self.timeFunction.calcFactor(
-            date, baseDate
-        )
+        self.timeFactor, self.timeErrorFactor = self.timeFunction.calcFactor(date, baseDate)
         self.timeFactor *= self.factor
         self.timeErrorFactor *= self.factor
         logging.info("Time factor calculated as %s", self.timeFactor)
@@ -509,18 +471,13 @@ class Component(object):
         # If the time factor is 0 then don't need to do any more
         t0 = self.timeFactor
         if t0 == 0.0:
-            logging.info("Time factor = 0.0 - spatial not calculated")
+            logging.info("Result for %s: Time factor = 0.0 - spatial not calculated", self.name)
             return [0.0, 0.0, 0.0, 0.0, 0.0]
 
         t1 = self.timeErrorFactor
         value = self.spatialModel.calcDeformation(x, y)[0]
-        return [
-            value[0] * t0,
-            value[1] * t0,
-            value[2] * t0,
-            value[3] * t1,
-            value[4] * t1,
-        ]
+        logging.info("Result for %s: %s * %s", self.name, t0, value)
+        return [value[0] * t0, value[1] * t0, value[2] * t0, value[3] * t1, value[4] * t1]
 
 
 class Model(object):
@@ -535,13 +492,7 @@ class Model(object):
     """
 
     versionspec = CsvFile.FieldSpec(
-        "version",
-        [
-            "version \\d{8}",
-            "release_date datetime",
-            "reverse_patch boolean",
-            "reason unicode",
-        ],
+        "version", ["version \\d{8}", "release_date datetime", "reverse_patch boolean", "reason unicode"]
     )
 
     modelspec = CsvFile.FieldSpec(
@@ -609,14 +560,7 @@ class Model(object):
         """.split()
 
     def __init__(
-        self,
-        basedir,
-        version=None,
-        baseVersion=None,
-        loadSubmodel=None,
-        loadAll=False,
-        useCache=True,
-        clearCache=False,
+        self, basedir, version=None, baseVersion=None, loadSubmodel=None, loadAll=False, useCache=True, clearCache=False
     ):
         """
         Loads the deformation model located at the specified base directory (the
@@ -633,25 +577,19 @@ class Model(object):
         logging.info("Loading deformation model from %s", basedir)
         self._basedir = basedir
         if not os.path.isdir(basedir):
-            raise ModelDefinitionError(
-                "Invalid deformation model base directory " + basedir
-            )
+            raise ModelDefinitionError("Invalid deformation model base directory " + basedir)
         modfile = os.path.join(basedir, "model.csv")
         verfile = os.path.join(basedir, "version.csv")
         mtdfile = os.path.join(basedir, "metadata.csv")
         for f in (modfile, verfile, mtdfile):
             if not os.path.isfile(f):
-                raise ModelDefinitionError(
-                    "File " + modfile + " is missing from deformation model"
-                )
+                raise ModelDefinitionError("File " + modfile + " is missing from deformation model")
 
         versions = {}
         curversion = None
         for ver in CsvFile("version", verfile, self.versionspec):
             if ver.version in versions:
-                raise ModelDefinitionError(
-                    "Version " + ver.version + " repeated in " + verfile
-                )
+                raise ModelDefinitionError("Version " + ver.version + " repeated in " + verfile)
             versions[ver.version] = ver
             if curversion is None or ver.version > curversion:
                 curversion = ver.version
@@ -665,21 +603,13 @@ class Model(object):
 
         for item in self.metadataitems:
             if item not in metadata:
-                raise ModelDefinitionError(
-                    "Metadata item " + item + " missing in " + mtdfile
-                )
+                raise ModelDefinitionError("Metadata item " + item + " missing in " + mtdfile)
 
         mtdversion = str(metadata["version"])
         if mtdversion not in versions:
-            raise ModelDefinitionError(
-                "Version " + mtdversion + " from metadata is not defined in version.csv"
-            )
+            raise ModelDefinitionError("Version " + mtdversion + " from metadata is not defined in version.csv")
         elif mtdversion != curversion:
-            raise ModelDefinitionError(
-                "Version "
-                + mtdversion
-                + " from metadata is not most recent version in version.csv"
-            )
+            raise ModelDefinitionError("Version " + mtdversion + " from metadata is not most recent version in version.csv")
 
         self._name = str(metadata["model_name"])
         self._datumcode = str(metadata["datum_code"])
@@ -693,9 +623,7 @@ class Model(object):
             self._datumepoch = Time.Parse(metadata["datum_epoch"])
         except:
             message = str(sys.exc_info()[1])
-            raise ModelDefinitionError(
-                "Invalid datum epoch in " + mtdfile + ": " + message
-            )
+            raise ModelDefinitionError("Invalid datum epoch in " + mtdfile + ": " + message)
 
         # List of model submodels, and hash of spatial files used to identify which have
         # already been loaded
@@ -727,9 +655,7 @@ class Model(object):
             if submodelList:
                 matched = False
                 for c in submodelList:
-                    if submodel.lower() == c or submodel.lower().startswith(
-                        "patch_" + c
-                    ):
+                    if submodel.lower() == c or submodel.lower().startswith("patch_" + c):
                         matched = True
                         break
                 if matched:
@@ -740,30 +666,18 @@ class Model(object):
 
             if mdl.version_added not in versions:
                 raise ModelDefinitionError(
-                    "Submodel "
-                    + mdl.submodel
-                    + " version_added "
-                    + mdl.version_added
-                    + " is not in version.csv"
+                    "Submodel " + mdl.submodel + " version_added " + mdl.version_added + " is not in version.csv"
                 )
             if mdl.version_revoked != "0" and mdl.version_revoked not in versions:
                 raise ModelDefinitionError(
-                    "Submodel "
-                    + mdl.submodel
-                    + " version_revoked "
-                    + mdl.version_revoked
-                    + " is not in version.csv"
+                    "Submodel " + mdl.submodel + " version_revoked " + mdl.version_revoked + " is not in version.csv"
                 )
             compbase = os.path.join(basedir, submodel)
             if not os.path.isdir(compbase):
-                raise ModelDefinitionError(
-                    "Submodel " + mdl.submodel + " directory is missing"
-                )
+                raise ModelDefinitionError("Submodel " + mdl.submodel + " directory is missing")
             compfile = os.path.join(compbase, "component.csv")
             if not os.path.isfile(compfile):
-                raise ModelDefinitionError(
-                    "Submodel " + mdl.submodel + " component.csv file is missing"
-                )
+                raise ModelDefinitionError("Submodel " + mdl.submodel + " component.csv file is missing")
             compname = os.path.join(submodel, "component.csv")
 
             filehashcheck = {}
@@ -771,33 +685,16 @@ class Model(object):
             for compdef in CsvFile("component", compfile, self.componentspec):
                 if compdef.version_added not in versions:
                     raise ModelDefinitionError(
-                        "Submodel version_added "
-                        + compdef.version_added
-                        + " in "
-                        + compname
-                        + "is not in version.csv"
+                        "Submodel version_added " + compdef.version_added + " in " + compname + "is not in version.csv"
                     )
-                if (
-                    compdef.version_revoked != "0"
-                    and compdef.version_revoked not in versions
-                ):
+                if compdef.version_revoked != "0" and compdef.version_revoked not in versions:
                     raise ModelDefinitionError(
-                        "Submodel version_revoked "
-                        + compdef.version_revoked
-                        + " in "
-                        + compname
-                        + " is not in version.csv"
+                        "Submodel version_revoked " + compdef.version_revoked + " in " + compname + " is not in version.csv"
                     )
                 if compdef.displacement_type == "none" and compdef.error_type == "none":
-                    raise ModelDefinitionError(
-                        "Component in "
-                        + compname
-                        + " has displacement_type and error_type as none"
-                    )
+                    raise ModelDefinitionError("Component in " + compname + " has displacement_type and error_type as none")
 
-                spatial = SpatialModel.get(
-                    self, self._spatial_models, submodel, compdef, loadAll
-                )
+                spatial = SpatialModel.get(self, self._spatial_models, submodel, compdef, loadAll)
                 temporal = TimeFunction.get(self._time_functions, compdef)
 
                 componentid = compdef.component
@@ -811,9 +708,7 @@ class Model(object):
                         subcomponents[componentid] = subcomp
                         spatial = subcomp
 
-                self._components.append(
-                    Component(submodel, mdl.description, compdef, spatial, temporal)
-                )
+                self._components.append(Component(submodel, mdl.description, compdef, spatial, temporal))
 
         self._stcomponents = []
         self._version = ""
@@ -854,20 +749,12 @@ class Model(object):
         else:
             version = str(version)
             if version not in self._versions:
-                raise ValueError(
-                    "Requested version "
-                    + version
-                    + " of deformation model is not defined"
-                )
+                raise ValueError("Requested version " + version + " of deformation model is not defined")
 
         if baseVersion:
             baseVersion = str(baseVersion)
             if baseVersion not in self._versions:
-                raise ValueError(
-                    "Requested base version "
-                    + baseVersion
-                    + " of deformation model is not defined"
-                )
+                raise ValueError("Requested base version " + baseVersion + " of deformation model is not defined")
         for c in self._components:
             factor = 0
             if c.appliesForVersion(version):
@@ -957,6 +844,7 @@ class Model(object):
                 result[i] += compvalue[i]
         result[3] = math.sqrt(abs(result[3]))
         result[4] = math.sqrt(abs(result[4]))
+        logging.info("Result: total deformation at (%s,%s): %s", x, y, result)
         return result
 
     def ellipsoid(self):
@@ -968,9 +856,7 @@ class Model(object):
             self._ellipsoid = Ellipsoid(a, rf)
         return self._ellipsoid
 
-    def applyTo(
-        self, lon, lat=None, hgt=None, date=None, baseDate=None, subtract=False
-    ):
+    def applyTo(self, lon, lat=None, hgt=None, date=None, baseDate=None, subtract=False):
         """
         Applies the deformation to longitude/latitude coordinates.
         
@@ -1009,13 +895,7 @@ class Model(object):
             ht = crd[2] if len(crd) > 2 else 0
             deun = self.calcDeformation(ln, lt, date, baseDate)[:3]
             dedln, dndlt = ell.metres_per_degree(ln, lt)
-            results.append(
-                [
-                    ln + factor * deun[0] / dedln,
-                    lt + factor * deun[1] / dndlt,
-                    ht + factor * deun[2],
-                ]
-            )
+            results.append([ln + factor * deun[0] / dedln, lt + factor * deun[1] / dndlt, ht + factor * deun[2]])
         return results[0] if single else np.array(results)
 
     def calcLLHFunc(self, lon, lat, hgt=0.0, subtract=False):
@@ -1028,11 +908,7 @@ class Model(object):
 
         def calcFunc(date):
             deun = self.calcDeformation(lon, lat, date)[:3]
-            return [
-                lon + factor * deun[0] / dedln,
-                lat + factor * deun[1] / dndlt,
-                hgt + factor * deun[2],
-            ]
+            return [lon + factor * deun[0] / dedln, lat + factor * deun[1] / dndlt, hgt + factor * deun[2]]
 
         return calcFunc
 
@@ -1119,11 +995,7 @@ class Model(object):
         return self._datumsrid
 
     def components(self, allversions=False):
-        compkey = lambda c: (
-            0 if c.submodel == "ndm" else 1,
-            c.versionAdded,
-            c.submodel,
-        )
+        compkey = lambda c: (0 if c.submodel == "ndm" else 1, c.versionAdded, c.submodel)
         for c in sorted(self._components, key=compkey):
             if allversions or c.appliesForVersion(self.version()):
                 yield c
@@ -1164,13 +1036,7 @@ class Model(object):
         outs = io.StringIO()
         mtd = self._metadata
         outs.write("Deformation model: " + mtd["model_name"] + "\n")
-        outs.write(
-            "Datum: "
-            + mtd["datum_name"]
-            + " (reference epoch "
-            + mtd["datum_epoch"]
-            + ")\n"
-        )
+        outs.write("Datum: " + mtd["datum_name"] + " (reference epoch " + mtd["datum_epoch"] + ")\n")
         outs.write("Version: " + self.version() + "\n")
         outs.write("\n")
         outs.write(mtd["description"] + "\n")
@@ -1179,31 +1045,19 @@ class Model(object):
             outs.write("\nVersions available:\n")
             for version in self.versions():
                 v = self.versionInfo(version)
-                outs.write(
-                    "    "
-                    + v.version
-                    + " released "
-                    + v.release_date.strftime("%d-%b-%Y")
-                    + ": "
-                    + v.reason
-                    + "\n"
-                )
+                outs.write("    " + v.version + " released " + v.release_date.strftime("%d-%b-%Y") + ": " + v.reason + "\n")
 
         if submodels:
             compcount = {}
             for c in self.components(allversions):
-                compcount[c.submodel] = (
-                    compcount[c.submodel] + 1 if c.submodel in compcount else 1
-                )
+                compcount[c.submodel] = compcount[c.submodel] + 1 if c.submodel in compcount else 1
 
             outs.write("\nSubmodels:\n")
             lastcomponent = None
             for c in self.components(allversions):
                 if c.submodel != lastcomponent:
                     description = c.compdesc.strip().replace("\n", "\n        ")
-                    outs.write(
-                        "\n    Submodel: " + c.submodel + ": " + description + "\n"
-                    )
+                    outs.write("\n    Submodel: " + c.submodel + ": " + description + "\n")
                     lastcomponent = c.submodel
                 prefix = "    "
                 if compcount[c.submodel] > 1:
@@ -1248,35 +1102,14 @@ def deformationModelArguments():
     import argparse
 
     parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-m", "--model-directory", help="The directory in which  the deformation model is defined")
+    parser.add_argument("-r", "--model-release", help="The release (version) of the deformation model to load")
     parser.add_argument(
-        "-m",
-        "--model-directory",
-        help="The directory in which  the deformation model is defined",
+        "--model-components", help='The components of the deformation model to load (eg "ndm+patch_c1_20100904")'
     )
-    parser.add_argument(
-        "-r",
-        "--model-release",
-        help="The release (version) of the deformation model to load",
-    )
-    parser.add_argument(
-        "--model-components",
-        help='The components of the deformation model to load (eg "ndm+patch_c1_20100904")',
-    )
-    parser.add_argument(
-        "--clear-model-cache",
-        action="store_true",
-        help="Clear the model cache (force a reload)",
-    )
-    parser.add_argument(
-        "--ignore-model-cache",
-        action="store_true",
-        help="Do not use the deformation model cache",
-    )
-    parser.add_argument(
-        "--list-deformation-model",
-        action="store_true",
-        help="List out the deformation model and exit",
-    )
+    parser.add_argument("--clear-model-cache", action="store_true", help="Clear the model cache (force a reload)")
+    parser.add_argument("--ignore-model-cache", action="store_true", help="Do not use the deformation model cache")
+    parser.add_argument("--list-deformation-model", action="store_true", help="List out the deformation model and exit")
     return parser
 
 
