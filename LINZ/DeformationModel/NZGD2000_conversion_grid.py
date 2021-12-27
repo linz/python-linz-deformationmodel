@@ -3,6 +3,7 @@
 # Imports to support python 3 compatibility
 
 
+import os
 import sys
 import argparse
 import numpy as np
@@ -201,9 +202,15 @@ def main():
         logging.basicConfig(level=logging.INFO)
 
     if not modeldir:
-        from os.path import dirname, abspath, join
+        modeldir = os.environ.get("NZGD2000_DEF_MODEL")
 
-        modeldir = join(dirname(dirname(abspath(__file__))), "model")
+    if not modeldir:
+        from os.path import dirname, abspath, join, isdir, exists
+
+        modeldir = join(dirname(dirname(abspath(sys.argv[0]))), "model")
+        modelcsv = join(modeldir, "model.csv")
+        if not isdir(modeldir) or not exists(modelcsv):
+            modeldir = "model"
 
     # Use a loop to make exiting easy...
 

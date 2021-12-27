@@ -506,7 +506,7 @@ class Model(object):
         ],
     )
 
-    metadataspec = CsvFile.FieldSpec("metadata", ["item \\w+", "value unicode"])
+    metadataspec = CsvFile.FieldSpec("metadata", ["item \\w+", "value ?unicode"])
 
     componentspec = CsvFile.FieldSpec(
         "submodel",
@@ -1013,7 +1013,6 @@ class Model(object):
 
         ScaledComponent = namedtuple("ScaledComponent", "factor component")
         revcomps = []
-        rpepoch = self._datumepoch
         for c in self.components(allversions=True):
             if c.versionAdded == version:
                 factor = -1.0

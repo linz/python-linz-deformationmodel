@@ -3,6 +3,7 @@
 # Imports to support python 3 compatibility
 
 
+import os
 import sys
 import datetime
 
@@ -309,9 +310,15 @@ def main(reversed=False):
             outputfile = args[-1]
 
     if not modeldir:
-        from os.path import dirname, abspath, join
+        modeldir = os.environ.get("NZGD2000_DEF_MODEL")
 
-        modeldir = join(dirname(dirname(abspath(__file__))), "model")
+    if not modeldir:
+        from os.path import dirname, abspath, join, isdir, exists
+
+        modeldir = join(dirname(dirname(abspath(sys.argv[0]))), "model")
+        modelcsv = join(modeldir, "model.csv")
+        if not isdir(modeldir) or not exists(modelcsv):
+            modeldir = "model"
 
     # Use a loop to make exiting easy...
 
@@ -319,7 +326,7 @@ def main(reversed=False):
         # Setup the transformation
         transform = None
         try:
-            transform = ITRF_NZGD2000.Transformation(
+            transform = Transformation(
                 itrf,
                 toNZGD2000=not reverse,
                 modeldir=modeldir,
